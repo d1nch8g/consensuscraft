@@ -16,7 +16,7 @@ A secure, trustless network for running Minecraft Bedrock servers with blockchai
 ### Core Components
 
 - **Go Application**: Main orchestrator running inside Ubuntu Docker containers
-- **Minecraft Bedrock Server**: Downloaded directly from Mojang with hash validation
+- **Minecraft Bedrock Server**: Downloaded directly from Mojang over https
 - **FUSE File System**: Encrypted file operations for server data
 - **Blockchain Interface**: Handles inventory persistence and synchronization
 
