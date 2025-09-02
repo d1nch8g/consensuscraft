@@ -42,3 +42,7 @@ The system operates on a zero-trust principle where:
 - Host processes cannot tamper with game state
 - File system modifications trigger automatic restarts
 - Remote nodes verify each other's integrity before key exchange
+
+---
+
+Project in development
