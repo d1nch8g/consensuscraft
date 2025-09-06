@@ -1,15 +1,15 @@
-# JAFT - Decentralized Anti-Cheat Bedrock Network
+# Consensuscraft - Decentralized Anti-Cheat Bedrock Network
 
-A trustless, decentralized Minecraft Bedrock server network with shared across network inventories and end chests, with statistical anti-xray/cheat validation and bot detection.
+A trustless, decentralized Minecraft Bedrock server network with shared cross-network inventories and ender chests, featuring statistical anti-xray/cheat validation and bot detection.
 
 ## Core Concept
 
-JAFT creates a network of autonomous Minecraft Bedrock servers that collectively validate player behavior and server integrity through:
+Consensuscraft creates a network of autonomous Minecraft Bedrock servers that collectively validate player behavior and server integrity through:
 
-- **Statistical item analysis** based on obtain complexity ratings
+- **Shared player inventories** with atomic claiming system preventing duplication
 - **Cross-server bot detection** through human verification challenges
 - **Cryptographic player authentication** via public key infrastructure
-- **Consensus-based enforcement** for banning cheaters and malicious servers
+- **Distributed database synchronization** for trustless data storage
 
 ## Architecture
 
@@ -21,35 +21,38 @@ JAFT creates a network of autonomous Minecraft Bedrock servers that collectively
 - Authentication requires signing server-provided challenge words
 - Response must be posted in chat to prove private key ownership
 - Prevents server operators from impersonating wealthy players
-- Also nodes can only register players that are currently playing, if too many registrations occure - the players are asked to pass challenges on other network nodes (to prove registrations are real)
+- Nodes can only register players currently online; excessive registrations trigger cross-node challenges
 
-### Item Complexity Validation
+### Player Inventory Management
 
-**Statistical Analysis:**
+**Atomic Claiming System:**
 
-- Each item assigned an "obtain complexity" rating
-- Tracks item production vs. consumption per player/server
-- Analyzes session data (login/logout times, items gained/lost)
-- Flags abnormal accumulation patterns that exceed statistical norms
+- Player inventories stored in decentralized network database
+- Servers must "claim" players before they can join (atomic operation)
+- Only one server can claim a player at a time (prevents duplication)
+- Lease-based system handles server crashes gracefully
+- Players released back to network when they disconnect
 
-**Enforcement Actions:**
+**Database Synchronization:**
 
-- Player ban: Network-wide exclusion for individuals exceeding thresholds
-- Server kick: Node removal from network for suspicious activity
-- Resource deletion: All items from kicked servers are purged
+- New nodes sync full database on startup via streaming key-value pairs
+- LevelDB-based storage with eventual consistency
+- All inventory changes replicated across network nodes
 
 ### Bot Detection Network
 
 **Cross-Node Verification:**
 
 - Random checks every 12-24 hours on network nodes
-- Targets 25% of server population (minimum 1 player)
-- Weighted by server size - larger servers perform more checks
-- Questions asked in chat, requires 70%+ human response rate
+- Each node tests 100% of target server's population
+- Simple chat-based questions with 4 options requiring human reasoning
+- Requires 70%+ human response rate to pass
 
-**Challenge Types:**
+**Enforcement:**
 
-- Simple chat-based questions with 4 options to choose, requiring human reasoning
+- Failed checks reported as violations to network
+- Servers with >50% violations in 12h window are banned
+- Network automatically ejects malicious nodes
 
 ## Security Features
 
@@ -62,10 +65,9 @@ JAFT creates a network of autonomous Minecraft Bedrock servers that collectively
 
 ### Network Integrity
 
-- **Consensus Mechanisms**: Multiple nodes must agree on violations
-- **Reputation Scoring**: Nodes rated on accuracy of reports
-- **Appeal System**: Process for contesting false positives
-- **Cryptographic Proofs**: Verifiable item transaction records
+- **Atomic Operations**: Prevent race conditions in player claiming
+- **Cryptographic Proofs**: All node communications signed
+- **Distributed Consensus**: No single point of failure
 
 ## Configuration
 
@@ -82,7 +84,7 @@ correct-player-movement=true
 difficulty=normal
 force-gamemode=true
 gamemode=survival
-level-seed randomized # Each node uses unique world gen
+level-seed=randomized # Each node uses unique world gen
 ```
 
 ### Client Validation
@@ -93,27 +95,52 @@ level-seed randomized # Each node uses unique world gen
 
 ## Network Protocol
 
-### Data Exchange
+### Core Services (gRPC Streaming)
 
-1. **Session Tracking**: Login/logout timestamps with item deltas
-2. **Statistical Reports**: Periodic complexity analysis summaries
-3. **Bot Check Results**: Human verification outcomes
-4. **Consensus Voting**: Multi-node agreement on enforcement actions
+```protobuf
+service ConsensusCraftService {
+  rpc NodeStream(stream Message) returns (stream Message);
+}
+```
 
-### Enforcement Thresholds
+### Message Types
 
-- **Item Anomaly**: Configurable standard deviations from expected rates
-- **Bot Check Failure**: <70% human response rate triggers investigation
-- **Consensus Requirement**: Minimum node agreement percentage for bans
+**Network Management:**
+
+- `DiscoverNodesRequest/Response` - Find other network nodes
+- `JoinRequest/Response` - Join the network with cryptographic proof
+- `SyncDatabaseRequest/Data/Response` - Replicate database state
+
+**Player Authentication:**
+
+- `RegisterPlayerRequest/Response` - Register public keys for players
+
+**Inventory Management:**
+
+- `ClaimPlayerRequest/Response` - Atomically claim player from network
+- `ReleasePlayerRequest/Response` - Return player inventory to network
+
+**Bot Detection:**
+
+- `BotCheckRequest` - Request bot check on target server
+- `BotViolationReport` - Report failed bot check to network
+
+### Data Flow
+
+1. **Node Startup**: Discover peers → Sync database → Join network
+2. **Player Join**: Claim player → Load inventory → Player connects
+3. **Player Leave**: Save inventory → Release player → Network stores data
+4. **Bot Checks**: Random timer → Test target → Report violations → Ban if needed
 
 ## Development Status
 
 🚧 **Project in Development**
 
-This is an experimental anti-cheat system pushing the boundaries of decentralized gaming infrastructure. The goal is to create a trustless network where players can enjoy fair gameplay without relying on centralized authorities, keeping their inventories and ender chests saved on a decentralized way.
+This is an experimental anti-cheat system pushing the boundaries of decentralized gaming infrastructure. The goal is to create a trustless network where players can enjoy fair gameplay without relying on centralized authorities, keeping their inventories and ender chests saved in a decentralized way.
 
 ## Future Enhancements
 
+- **Statistical Analysis**: Item complexity validation and anomaly detection
 - **Machine Learning**: Pattern recognition for sophisticated cheat detection
-- **Appeal Integration**: Democratic review process for disputed bans
+- **Appeal System**: Democratic review process for disputed bans
 - **Economic Modeling**: Advanced statistical models for item flow analysis

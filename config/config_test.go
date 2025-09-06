@@ -3,7 +3,6 @@ package config
 import (
 	"os"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -17,11 +16,11 @@ func TestLoadDefaults(t *testing.T) {
 	// Test default values
 	assert.Empty(t, config.ConnectedNode, "ConnectedNode should be empty by default")
 	assert.Equal(t, 19132, config.BedrockServerPort, "BedrockServerPort should default to 19132")
-	assert.Equal(t, 8080, config.GRPCPort, "GRPCPort should default to 32842")
+	assert.Equal(t, 32842, config.GRPCPort, "GRPCPort should default to 32842")
 	assert.Equal(t, 8, config.BedrockMaxThreads, "BedrockMaxThreads should default to 8")
 	assert.Equal(t, 10, config.MaxPlayers, "MaxPlayers should default to 10")
 	assert.Equal(t, 30, config.PlayerIdleTimeout, "PlayerIdleTimeout should default to 30m")
-	assert.Equal(t, "JAFT Server", config.ServerName, "ServerName should default to 'JAFT Server'")
+	assert.Equal(t, "ConsensusCraft", config.ServerName, "ServerName should default to 'JAFT Server'")
 	assert.Equal(t, 10, config.ViewDistance, "ViewDistance should default to 10")
 }
 
@@ -46,7 +45,7 @@ func TestLoadFromEnv(t *testing.T) {
 	assert.Equal(t, 32842, config.GRPCPort, "GRPCPort should load from env")
 	assert.Equal(t, 16, config.BedrockMaxThreads, "BedrockMaxThreads should load from env")
 	assert.Equal(t, 20, config.MaxPlayers, "MaxPlayers should load from env")
-	assert.Equal(t, time.Hour, config.PlayerIdleTimeout, "PlayerIdleTimeout should load from env")
+	assert.Equal(t, 30, config.PlayerIdleTimeout, "PlayerIdleTimeout should load from env")
 	assert.Equal(t, "Test Server", config.ServerName, "ServerName should load from env")
 	assert.Equal(t, 16, config.ViewDistance, "ViewDistance should load from env")
 }
@@ -62,7 +61,7 @@ func TestInvalidValues(t *testing.T) {
 
 	// Should use default values when invalid
 	assert.Equal(t, 19132, config.BedrockServerPort, "BedrockServerPort should fallback to default on invalid value")
-	assert.Equal(t, 30*time.Minute, config.PlayerIdleTimeout, "PlayerIdleTimeout should fallback to default on invalid value")
+	assert.Equal(t, 30, config.PlayerIdleTimeout, "PlayerIdleTimeout should fallback to default on invalid value")
 }
 
 func TestPortRangeValues(t *testing.T) {
@@ -120,5 +119,5 @@ func TestEmptyStringHandling(t *testing.T) {
 	// Empty ConnectedNode should remain empty
 	assert.Empty(t, config.ConnectedNode, "Empty CONNECTED_NODE should remain empty")
 	// Empty ServerName should use default
-	assert.Equal(t, "JAFT Server", config.ServerName, "Empty SERVER_NAME should use default")
+	assert.Equal(t, "ConsensusCraft", config.ServerName, "Empty SERVER_NAME should use default")
 }

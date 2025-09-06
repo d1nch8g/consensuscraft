@@ -1,0 +1,104 @@
+syntax = "proto3";
+
+package consensuscraft;
+
+option go_package = "./gen/pb";
+
+service ConsensusCraftService {
+  // Bidirectional stream for all node communication
+  rpc NodeStream(stream Message) returns (stream Message);
+}
+
+// Main message wrapper
+message Message {
+  oneof content {
+    // Network
+    SyncDatabaseRequest sync_database_request = 10;
+    SyncDatabaseData sync_database_data = 11;
+    SyncDatabaseResponse sync_database_response = 12;
+    DiscoverNodesRequest discover_nodes_request = 13;
+    DiscoverNodesResponse discover_nodes_response = 14;
+    JoinRequest join_request = 15;
+    JoinResponse join_response = 16;
+
+    // Player auth
+    RegisterPlayerRequest register_player_request = 20;
+    RegisterPlayerResponse register_player_response = 21;
+
+    // Player inventory sync
+    ClaimPlayerRequest claim_player_request = 30;
+    ClaimPlayerResponse claim_player_response = 31;
+    ReleasePlayerRequest release_player_request = 32;
+    ReleasePlayerResponse release_player_response = 33;
+
+    // Bot checks
+    BotCheckRequest bot_check_request = 40;
+    BotViolationReport bot_violation_report = 42;
+  }
+}
+
+// Network messages
+message DiscoverNodesRequest {}
+
+message DiscoverNodesResponse { repeated NodeInfo nodes = 1; }
+
+message NodeInfo {
+  string endpoint = 1;
+  bytes public_key = 2;
+}
+
+message SyncDatabaseRequest {}
+
+message SyncDatabaseData {
+  bytes key = 1;
+  bytes value = 2;
+}
+
+message SyncDatabaseResponse {}
+
+message JoinRequest {
+  bytes public_key = 1;
+  string endpoint = 2;
+  bytes signature = 3;
+}
+
+message JoinResponse {
+  bool accepted = 1;
+  repeated string player_nicknames = 2;
+}
+
+// Player authentication
+message RegisterPlayerRequest {
+  string nickname = 1;
+  string public_key = 2;
+}
+
+message RegisterPlayerResponse { bool registered = 1; }
+
+// Player inventory synchronization
+message ClaimPlayerRequest {
+  string player_nickname = 1;
+  string claiming_server = 2;
+}
+
+message ClaimPlayerResponse {
+  bool success = 1;
+  bytes inventory_blob = 2;
+}
+
+message ReleasePlayerRequest {
+  string player_nickname = 1;
+  bytes inventory_blob = 2;
+}
+
+message ReleasePlayerResponse {
+  bool success = 1;
+  string error_reason = 2;
+}
+
+message BotCheckRequest {
+  string player_nickname = 1;
+  string target_node = 2;
+}
+
+message BotViolationReport { string node = 1; }

@@ -27,7 +27,7 @@ func Load() *Config {
 
 	return &Config{
 		ConnectedNode:     getEnvString("CONNECTED_NODE", ""),
-		ServerName:        getEnvString("SERVER_NAME", "JAFT Server"),
+		ServerName:        getEnvString("SERVER_NAME", "ConsensusCraft"),
 		BedrockServerPort: getEnvInt("BEDROCK_SERVER_PORT", 19132),
 		GRPCPort:          getEnvInt("GRPC_PORT", 32842),
 		BedrockMaxThreads: getEnvInt("BEDROCK_MAX_THREADS", 8),

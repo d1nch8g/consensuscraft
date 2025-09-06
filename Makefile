@@ -1,21 +1,10 @@
-
+.PHONY: install
 install:
-	go mod tidy
+	go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 
-# Build test binary for embedding
-build-test-binary:
-	go run main.go build-test-binary
+.PHONY: gen
+gen:
+	mkdir -p gen/pb
+	protoc --go_out=. --go-grpc_out=. proto/consesnuscraft.proto
 
-# Run the FUSE encrypted filesystem demo
-demo: build-test-binary
-	go run main.go demo
-
-# Clean up demo artifacts
-clean:
-	rm -f testbinary
-	rm -rf encrypted_storage encrypted_fs
-
-# Full demo run
-run-demo: clean demo
-
-.PHONY: install build-test-binary demo clean run-demo
