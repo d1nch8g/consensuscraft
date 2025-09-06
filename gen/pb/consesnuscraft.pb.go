@@ -787,6 +787,7 @@ type ClaimPlayerRequest struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	PlayerNickname string                 `protobuf:"bytes,1,opt,name=player_nickname,json=playerNickname,proto3" json:"player_nickname,omitempty"`
 	ClaimingServer string                 `protobuf:"bytes,2,opt,name=claiming_server,json=claimingServer,proto3" json:"claiming_server,omitempty"`
+	Signature      []byte                 `protobuf:"bytes,3,opt,name=signature,proto3" json:"signature,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -833,6 +834,13 @@ func (x *ClaimPlayerRequest) GetClaimingServer() string {
 		return x.ClaimingServer
 	}
 	return ""
+}
+
+func (x *ClaimPlayerRequest) GetSignature() []byte {
+	if x != nil {
+		return x.Signature
+	}
+	return nil
 }
 
 type ClaimPlayerResponse struct {
@@ -891,6 +899,7 @@ type ReleasePlayerRequest struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	PlayerNickname string                 `protobuf:"bytes,1,opt,name=player_nickname,json=playerNickname,proto3" json:"player_nickname,omitempty"`
 	InventoryBlob  []byte                 `protobuf:"bytes,2,opt,name=inventory_blob,json=inventoryBlob,proto3" json:"inventory_blob,omitempty"`
+	Signature      []byte                 `protobuf:"bytes,3,opt,name=signature,proto3" json:"signature,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -935,6 +944,13 @@ func (x *ReleasePlayerRequest) GetPlayerNickname() string {
 func (x *ReleasePlayerRequest) GetInventoryBlob() []byte {
 	if x != nil {
 		return x.InventoryBlob
+	}
+	return nil
+}
+
+func (x *ReleasePlayerRequest) GetSignature() []byte {
+	if x != nil {
+		return x.Signature
 	}
 	return nil
 }
@@ -995,6 +1011,7 @@ type BotCheckRequest struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	PlayerNickname string                 `protobuf:"bytes,1,opt,name=player_nickname,json=playerNickname,proto3" json:"player_nickname,omitempty"`
 	TargetNode     string                 `protobuf:"bytes,2,opt,name=target_node,json=targetNode,proto3" json:"target_node,omitempty"`
+	Signature      []byte                 `protobuf:"bytes,3,opt,name=signature,proto3" json:"signature,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -1043,9 +1060,18 @@ func (x *BotCheckRequest) GetTargetNode() string {
 	return ""
 }
 
+func (x *BotCheckRequest) GetSignature() []byte {
+	if x != nil {
+		return x.Signature
+	}
+	return nil
+}
+
 type BotViolationReport struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Node          string                 `protobuf:"bytes,1,opt,name=node,proto3" json:"node,omitempty"`
+	ValidatorNode string                 `protobuf:"bytes,1,opt,name=validator_node,json=validatorNode,proto3" json:"validator_node,omitempty"`
+	ViolatorNode  string                 `protobuf:"bytes,2,opt,name=violator_node,json=violatorNode,proto3" json:"violator_node,omitempty"`
+	Signature     []byte                 `protobuf:"bytes,3,opt,name=signature,proto3" json:"signature,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1080,11 +1106,25 @@ func (*BotViolationReport) Descriptor() ([]byte, []int) {
 	return file_proto_consesnuscraft_proto_rawDescGZIP(), []int{16}
 }
 
-func (x *BotViolationReport) GetNode() string {
+func (x *BotViolationReport) GetValidatorNode() string {
 	if x != nil {
-		return x.Node
+		return x.ValidatorNode
 	}
 	return ""
+}
+
+func (x *BotViolationReport) GetViolatorNode() string {
+	if x != nil {
+		return x.ViolatorNode
+	}
+	return ""
+}
+
+func (x *BotViolationReport) GetSignature() []byte {
+	if x != nil {
+		return x.Signature
+	}
+	return nil
 }
 
 var File_proto_consesnuscraft_proto protoreflect.FileDescriptor
@@ -1138,25 +1178,30 @@ const file_proto_consesnuscraft_proto_rawDesc = "" +
 	"\x16RegisterPlayerResponse\x12\x1e\n" +
 	"\n" +
 	"registered\x18\x01 \x01(\bR\n" +
-	"registered\"f\n" +
+	"registered\"\x84\x01\n" +
 	"\x12ClaimPlayerRequest\x12'\n" +
 	"\x0fplayer_nickname\x18\x01 \x01(\tR\x0eplayerNickname\x12'\n" +
-	"\x0fclaiming_server\x18\x02 \x01(\tR\x0eclaimingServer\"V\n" +
+	"\x0fclaiming_server\x18\x02 \x01(\tR\x0eclaimingServer\x12\x1c\n" +
+	"\tsignature\x18\x03 \x01(\fR\tsignature\"V\n" +
 	"\x13ClaimPlayerResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12%\n" +
-	"\x0einventory_blob\x18\x02 \x01(\fR\rinventoryBlob\"f\n" +
+	"\x0einventory_blob\x18\x02 \x01(\fR\rinventoryBlob\"\x84\x01\n" +
 	"\x14ReleasePlayerRequest\x12'\n" +
 	"\x0fplayer_nickname\x18\x01 \x01(\tR\x0eplayerNickname\x12%\n" +
-	"\x0einventory_blob\x18\x02 \x01(\fR\rinventoryBlob\"T\n" +
+	"\x0einventory_blob\x18\x02 \x01(\fR\rinventoryBlob\x12\x1c\n" +
+	"\tsignature\x18\x03 \x01(\fR\tsignature\"T\n" +
 	"\x15ReleasePlayerResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12!\n" +
-	"\ferror_reason\x18\x02 \x01(\tR\verrorReason\"[\n" +
+	"\ferror_reason\x18\x02 \x01(\tR\verrorReason\"y\n" +
 	"\x0fBotCheckRequest\x12'\n" +
 	"\x0fplayer_nickname\x18\x01 \x01(\tR\x0eplayerNickname\x12\x1f\n" +
 	"\vtarget_node\x18\x02 \x01(\tR\n" +
-	"targetNode\"(\n" +
-	"\x12BotViolationReport\x12\x12\n" +
-	"\x04node\x18\x01 \x01(\tR\x04node2[\n" +
+	"targetNode\x12\x1c\n" +
+	"\tsignature\x18\x03 \x01(\fR\tsignature\"~\n" +
+	"\x12BotViolationReport\x12%\n" +
+	"\x0evalidator_node\x18\x01 \x01(\tR\rvalidatorNode\x12#\n" +
+	"\rviolator_node\x18\x02 \x01(\tR\fviolatorNode\x12\x1c\n" +
+	"\tsignature\x18\x03 \x01(\fR\tsignature2[\n" +
 	"\x15ConsensusCraftService\x12B\n" +
 	"\n" +
 	"NodeStream\x12\x17.consensuscraft.Message\x1a\x17.consensuscraft.Message(\x010\x01B\n" +

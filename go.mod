@@ -7,12 +7,14 @@ toolchain go1.24.6
 require (
 	github.com/joho/godotenv v1.5.1
 	github.com/stretchr/testify v1.11.1
+	github.com/syndtr/goleveldb v1.0.0
 	google.golang.org/grpc v1.75.0
 	google.golang.org/protobuf v1.36.8
 )
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/golang/snappy v0.0.0-20180518054509-2e65f85255db // indirect
 	github.com/kr/pretty v0.2.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect

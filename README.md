@@ -138,9 +138,7 @@ service ConsensusCraftService {
 
 This is an experimental anti-cheat system pushing the boundaries of decentralized gaming infrastructure. The goal is to create a trustless network where players can enjoy fair gameplay without relying on centralized authorities, keeping their inventories and ender chests saved in a decentralized way.
 
-## Future Enhancements
-
-- **Statistical Analysis**: Item complexity validation and anomaly detection
-- **Machine Learning**: Pattern recognition for sophisticated cheat detection
-- **Appeal System**: Democratic review process for disputed bans
-- **Economic Modeling**: Advanced statistical models for item flow analysis
+<!--
+implement proper syncornization of database on node connection
+instead when retreiving someone's inventory check by weighed by player per node on some provided data
+-->
