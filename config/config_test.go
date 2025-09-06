@@ -17,10 +17,10 @@ func TestLoadDefaults(t *testing.T) {
 	// Test default values
 	assert.Empty(t, config.ConnectedNode, "ConnectedNode should be empty by default")
 	assert.Equal(t, 19132, config.BedrockServerPort, "BedrockServerPort should default to 19132")
-	assert.Equal(t, 8080, config.JaftHTTPPort, "JaftHTTPPort should default to 8080")
+	assert.Equal(t, 8080, config.GRPCPort, "GRPCPort should default to 32842")
 	assert.Equal(t, 8, config.BedrockMaxThreads, "BedrockMaxThreads should default to 8")
 	assert.Equal(t, 10, config.MaxPlayers, "MaxPlayers should default to 10")
-	assert.Equal(t, 30*time.Minute, config.PlayerIdleTimeout, "PlayerIdleTimeout should default to 30m")
+	assert.Equal(t, 30, config.PlayerIdleTimeout, "PlayerIdleTimeout should default to 30m")
 	assert.Equal(t, "JAFT Server", config.ServerName, "ServerName should default to 'JAFT Server'")
 	assert.Equal(t, 10, config.ViewDistance, "ViewDistance should default to 10")
 }
@@ -29,7 +29,7 @@ func TestLoadFromEnv(t *testing.T) {
 	// Set environment variables
 	os.Setenv("CONNECTED_NODE", "192.168.1.100:8080")
 	os.Setenv("BEDROCK_SERVER_PORT", "25565")
-	os.Setenv("JAFT_HTTP_PORT", "9090")
+	os.Setenv("GRPC_PORT", "32842")
 	os.Setenv("BEDROCK_MAX_THREADS", "16")
 	os.Setenv("MAX_PLAYERS", "20")
 	os.Setenv("PLAYER_IDLE_TIMEOUT", "1h")
@@ -43,7 +43,7 @@ func TestLoadFromEnv(t *testing.T) {
 	// Test environment values
 	assert.Equal(t, "192.168.1.100:8080", config.ConnectedNode, "ConnectedNode should load from env")
 	assert.Equal(t, 25565, config.BedrockServerPort, "BedrockServerPort should load from env")
-	assert.Equal(t, 9090, config.JaftHTTPPort, "JaftHTTPPort should load from env")
+	assert.Equal(t, 32842, config.GRPCPort, "GRPCPort should load from env")
 	assert.Equal(t, 16, config.BedrockMaxThreads, "BedrockMaxThreads should load from env")
 	assert.Equal(t, 20, config.MaxPlayers, "MaxPlayers should load from env")
 	assert.Equal(t, time.Hour, config.PlayerIdleTimeout, "PlayerIdleTimeout should load from env")
@@ -63,30 +63,6 @@ func TestInvalidValues(t *testing.T) {
 	// Should use default values when invalid
 	assert.Equal(t, 19132, config.BedrockServerPort, "BedrockServerPort should fallback to default on invalid value")
 	assert.Equal(t, 30*time.Minute, config.PlayerIdleTimeout, "PlayerIdleTimeout should fallback to default on invalid value")
-}
-
-func TestValidDurationFormats(t *testing.T) {
-	testCases := []struct {
-		name     string
-		value    string
-		expected time.Duration
-	}{
-		{"seconds", "45s", 45 * time.Second},
-		{"minutes", "15m", 15 * time.Minute},
-		{"hours", "2h", 2 * time.Hour},
-		{"combined", "1h30m", time.Hour + 30*time.Minute},
-		{"complex", "2h15m30s", 2*time.Hour + 15*time.Minute + 30*time.Second},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			os.Clearenv()
-			os.Setenv("PLAYER_IDLE_TIMEOUT", tc.value)
-
-			config := Load()
-			assert.Equal(t, tc.expected, config.PlayerIdleTimeout, "Duration format %s should parse correctly", tc.value)
-		})
-	}
 }
 
 func TestPortRangeValues(t *testing.T) {

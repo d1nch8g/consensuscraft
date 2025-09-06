@@ -4,19 +4,18 @@ import (
 	"log"
 	"os"
 	"strconv"
-	"time"
 
 	"github.com/joho/godotenv"
 )
 
 type Config struct {
 	ConnectedNode     string
+	ServerName        string
 	BedrockServerPort int
-	JaftHTTPPort      int
+	GRPCPort          int
 	BedrockMaxThreads int
 	MaxPlayers        int
-	PlayerIdleTimeout time.Duration
-	ServerName        string
+	PlayerIdleTimeout int
 	ViewDistance      int
 }
 
@@ -28,12 +27,12 @@ func Load() *Config {
 
 	return &Config{
 		ConnectedNode:     getEnvString("CONNECTED_NODE", ""),
+		ServerName:        getEnvString("SERVER_NAME", "JAFT Server"),
 		BedrockServerPort: getEnvInt("BEDROCK_SERVER_PORT", 19132),
-		JaftHTTPPort:      getEnvInt("JAFT_HTTP_PORT", 8080),
+		GRPCPort:          getEnvInt("GRPC_PORT", 32842),
 		BedrockMaxThreads: getEnvInt("BEDROCK_MAX_THREADS", 8),
 		MaxPlayers:        getEnvInt("MAX_PLAYERS", 10),
-		PlayerIdleTimeout: getEnvDuration("PLAYER_IDLE_TIMEOUT", "30m"),
-		ServerName:        getEnvString("SERVER_NAME", "JAFT Server"),
+		PlayerIdleTimeout: getEnvInt("PLAYER_IDLE_TIMEOUT", 30),
 		ViewDistance:      getEnvInt("VIEW_DISTANCE", 10),
 	}
 }
@@ -53,19 +52,4 @@ func getEnvInt(key string, defaultValue int) int {
 		log.Printf("Warning: Invalid integer value for %s: %s, using default: %d", key, value, defaultValue)
 	}
 	return defaultValue
-}
-
-func getEnvDuration(key, defaultValue string) time.Duration {
-	value := os.Getenv(key)
-	if value == "" {
-		value = defaultValue
-	}
-
-	duration, err := time.ParseDuration(value)
-	if err != nil {
-		log.Printf("Warning: Invalid duration value for %s: %s, using default: %s", key, value, defaultValue)
-		duration, _ = time.ParseDuration(defaultValue)
-	}
-
-	return duration
 }
