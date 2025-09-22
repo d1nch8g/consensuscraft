@@ -77,10 +77,7 @@ Consensuscraft creates a network of autonomous Minecraft Bedrock servers that co
 online-mode=true # Xbox Live authentication required
 xbox-auth=true # Legitimate accounts only
 texturepack-required=true # Server-provided resource pack
-server-authoritative-movement=true
-server-authoritative-block-breaking=true
 allow-cheats=true # Required for inventory management
-correct-player-movement=true
 difficulty=normal
 force-gamemode=true
 gamemode=survival

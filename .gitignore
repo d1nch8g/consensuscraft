@@ -34,3 +34,5 @@ bsh.md
 trash/
 *.zip
 
+server
+inventories.ldb

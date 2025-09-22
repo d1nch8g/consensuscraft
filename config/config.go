@@ -19,7 +19,7 @@ type Config struct {
 	ViewDistance      int
 }
 
-func Load() *Config {
+func New() *Config {
 	err := godotenv.Load()
 	if err != nil {
 		log.Printf("Warning: Could not load .env file: %v", err)

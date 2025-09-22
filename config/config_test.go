@@ -11,7 +11,7 @@ func TestLoadDefaults(t *testing.T) {
 	// Clear environment variables
 	os.Clearenv()
 
-	config := Load()
+	config := New()
 
 	// Test default values
 	assert.Empty(t, config.ConnectedNode, "ConnectedNode should be empty by default")
@@ -37,7 +37,7 @@ func TestLoadFromEnv(t *testing.T) {
 
 	defer os.Clearenv()
 
-	config := Load()
+	config := New()
 
 	// Test environment values
 	assert.Equal(t, "192.168.1.100:8080", config.ConnectedNode, "ConnectedNode should load from env")
@@ -57,7 +57,7 @@ func TestInvalidValues(t *testing.T) {
 
 	defer os.Clearenv()
 
-	config := Load()
+	config := New()
 
 	// Should use default values when invalid
 	assert.Equal(t, 19132, config.BedrockServerPort, "BedrockServerPort should fallback to default on invalid value")
@@ -80,7 +80,7 @@ func TestPortRangeValues(t *testing.T) {
 			os.Clearenv()
 			os.Setenv("BEDROCK_SERVER_PORT", tc.port)
 
-			config := Load()
+			config := New()
 			assert.Equal(t, tc.expected, config.BedrockServerPort, "Port %s should be parsed correctly", tc.port)
 		})
 	}
@@ -102,7 +102,7 @@ func TestViewDistanceValues(t *testing.T) {
 			os.Clearenv()
 			os.Setenv("VIEW_DISTANCE", tc.value)
 
-			config := Load()
+			config := New()
 			assert.Equal(t, tc.expected, config.ViewDistance, "ViewDistance %s should be parsed correctly", tc.value)
 		})
 	}
@@ -114,7 +114,7 @@ func TestEmptyStringHandling(t *testing.T) {
 	os.Setenv("CONNECTED_NODE", "")
 	os.Setenv("SERVER_NAME", "")
 
-	config := Load()
+	config := New()
 
 	// Empty ConnectedNode should remain empty
 	assert.Empty(t, config.ConnectedNode, "Empty CONNECTED_NODE should remain empty")

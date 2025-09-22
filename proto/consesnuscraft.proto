@@ -21,19 +21,11 @@ message Message {
     JoinRequest join_request = 15;
     JoinResponse join_response = 16;
 
-    // Player auth
-    RegisterPlayerRequest register_player_request = 20;
-    RegisterPlayerResponse register_player_response = 21;
-
-    // Player inventory sync
-    ClaimPlayerRequest claim_player_request = 30;
-    ClaimPlayerResponse claim_player_response = 31;
-    ReleasePlayerRequest release_player_request = 32;
-    ReleasePlayerResponse release_player_response = 33;
-
-    // Bot checks
-    BotCheckRequest bot_check_request = 40;
-    BotViolationReport bot_violation_report = 42;
+    // Node communication
+    HeartBeat heart_beat = 17;
+    ClaimPlayer claim_player = 18;
+    UpdateInventory update_inventory = 19;
+    ReleasePlayer release_player = 20;
   }
 }
 
@@ -64,53 +56,24 @@ message JoinRequest {
 
 message JoinResponse {
   bool accepted = 1;
-  repeated Player players = 2;
+  repeated string players = 2;
 }
 
-message Player {
-  string name = 1;
-  bytes join_inventory = 2;
+// Node communication messages
+message HeartBeat {}
+
+message ClaimPlayer {
+  string player = 1;
+  bytes signature = 2;
 }
 
-// Player authentication
-message RegisterPlayerRequest {
-  string nickname = 1;
-  string public_key = 2;
-}
-
-message RegisterPlayerResponse { bool registered = 1; }
-
-// Player inventory synchronization
-message ClaimPlayerRequest {
-  string player_nickname = 1;
-  string claiming_server = 2;
+message UpdateInventory {
+  string player = 1;
+  bytes inventory = 2;
   bytes signature = 3;
 }
 
-message ClaimPlayerResponse {
-  bool success = 1;
-  bytes inventory_blob = 2;
-}
-
-message ReleasePlayerRequest {
-  string player_nickname = 1;
-  bytes inventory_blob = 2;
-  bytes signature = 3;
-}
-
-message ReleasePlayerResponse {
-  bool success = 1;
-  string error_reason = 2;
-}
-
-message BotCheckRequest {
-  string player_nickname = 1;
-  string target_node = 2;
-  bytes signature = 3;
-}
-
-message BotViolationReport {
-  string validator_node = 1;
-  string violator_node = 2;
-  bytes signature = 3;
+message ReleasePlayer {
+  string player = 1;
+  bytes signature = 2;
 }
