@@ -9,14 +9,9 @@ import (
 )
 
 type Config struct {
-	ConnectedNode     string
-	ServerName        string
-	BedrockServerPort int
-	GRPCPort          int
-	BedrockMaxThreads int
-	MaxPlayers        int
-	PlayerIdleTimeout int
-	ViewDistance      int
+	ConnectedNode string
+	WebAddress    string
+	GRPCPort      int
 }
 
 func New() *Config {
@@ -26,14 +21,9 @@ func New() *Config {
 	}
 
 	return &Config{
-		ConnectedNode:     getEnvString("CONNECTED_NODE", ""),
-		ServerName:        getEnvString("SERVER_NAME", "ConsensusCraft"),
-		BedrockServerPort: getEnvInt("BEDROCK_SERVER_PORT", 19132),
-		GRPCPort:          getEnvInt("GRPC_PORT", 32842),
-		BedrockMaxThreads: getEnvInt("BEDROCK_MAX_THREADS", 8),
-		MaxPlayers:        getEnvInt("MAX_PLAYERS", 10),
-		PlayerIdleTimeout: getEnvInt("PLAYER_IDLE_TIMEOUT", 30),
-		ViewDistance:      getEnvInt("VIEW_DISTANCE", 10),
+		ConnectedNode: getEnvString("CONNECTED_NODE", ""),
+		WebAddress:    getEnvString("WEB_ADDRESS", "localhost"),
+		GRPCPort:      getEnvInt("GRPC_PORT", 32842),
 	}
 }
 
