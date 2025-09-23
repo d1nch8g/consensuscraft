@@ -21,7 +21,6 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Main message wrapper
 type Message struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Types that are valid to be assigned to Content:
@@ -29,11 +28,8 @@ type Message struct {
 	//	*Message_SyncDatabaseRequest
 	//	*Message_SyncDatabaseData
 	//	*Message_SyncDatabaseResponse
-	//	*Message_DiscoverNodesRequest
-	//	*Message_DiscoverNodesResponse
 	//	*Message_JoinRequest
 	//	*Message_JoinResponse
-	//	*Message_HeartBeat
 	//	*Message_ClaimPlayer
 	//	*Message_UpdateInventory
 	//	*Message_ReleasePlayer
@@ -106,24 +102,6 @@ func (x *Message) GetSyncDatabaseResponse() *SyncDatabaseResponse {
 	return nil
 }
 
-func (x *Message) GetDiscoverNodesRequest() *DiscoverNodesRequest {
-	if x != nil {
-		if x, ok := x.Content.(*Message_DiscoverNodesRequest); ok {
-			return x.DiscoverNodesRequest
-		}
-	}
-	return nil
-}
-
-func (x *Message) GetDiscoverNodesResponse() *DiscoverNodesResponse {
-	if x != nil {
-		if x, ok := x.Content.(*Message_DiscoverNodesResponse); ok {
-			return x.DiscoverNodesResponse
-		}
-	}
-	return nil
-}
-
 func (x *Message) GetJoinRequest() *JoinRequest {
 	if x != nil {
 		if x, ok := x.Content.(*Message_JoinRequest); ok {
@@ -137,15 +115,6 @@ func (x *Message) GetJoinResponse() *JoinResponse {
 	if x != nil {
 		if x, ok := x.Content.(*Message_JoinResponse); ok {
 			return x.JoinResponse
-		}
-	}
-	return nil
-}
-
-func (x *Message) GetHeartBeat() *HeartBeat {
-	if x != nil {
-		if x, ok := x.Content.(*Message_HeartBeat); ok {
-			return x.HeartBeat
 		}
 	}
 	return nil
@@ -195,14 +164,6 @@ type Message_SyncDatabaseResponse struct {
 	SyncDatabaseResponse *SyncDatabaseResponse `protobuf:"bytes,12,opt,name=sync_database_response,json=syncDatabaseResponse,proto3,oneof"`
 }
 
-type Message_DiscoverNodesRequest struct {
-	DiscoverNodesRequest *DiscoverNodesRequest `protobuf:"bytes,13,opt,name=discover_nodes_request,json=discoverNodesRequest,proto3,oneof"`
-}
-
-type Message_DiscoverNodesResponse struct {
-	DiscoverNodesResponse *DiscoverNodesResponse `protobuf:"bytes,14,opt,name=discover_nodes_response,json=discoverNodesResponse,proto3,oneof"`
-}
-
 type Message_JoinRequest struct {
 	JoinRequest *JoinRequest `protobuf:"bytes,15,opt,name=join_request,json=joinRequest,proto3,oneof"`
 }
@@ -211,12 +172,8 @@ type Message_JoinResponse struct {
 	JoinResponse *JoinResponse `protobuf:"bytes,16,opt,name=join_response,json=joinResponse,proto3,oneof"`
 }
 
-type Message_HeartBeat struct {
-	// Node communication
-	HeartBeat *HeartBeat `protobuf:"bytes,17,opt,name=heart_beat,json=heartBeat,proto3,oneof"`
-}
-
 type Message_ClaimPlayer struct {
+	// Node communication
 	ClaimPlayer *ClaimPlayer `protobuf:"bytes,18,opt,name=claim_player,json=claimPlayer,proto3,oneof"`
 }
 
@@ -234,15 +191,9 @@ func (*Message_SyncDatabaseData) isMessage_Content() {}
 
 func (*Message_SyncDatabaseResponse) isMessage_Content() {}
 
-func (*Message_DiscoverNodesRequest) isMessage_Content() {}
-
-func (*Message_DiscoverNodesResponse) isMessage_Content() {}
-
 func (*Message_JoinRequest) isMessage_Content() {}
 
 func (*Message_JoinResponse) isMessage_Content() {}
-
-func (*Message_HeartBeat) isMessage_Content() {}
 
 func (*Message_ClaimPlayer) isMessage_Content() {}
 
@@ -250,7 +201,6 @@ func (*Message_UpdateInventory) isMessage_Content() {}
 
 func (*Message_ReleasePlayer) isMessage_Content() {}
 
-// Network messages
 type DiscoverNodesRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -619,7 +569,6 @@ func (x *JoinResponse) GetPlayers() []string {
 	return nil
 }
 
-// Node communication messages
 type HeartBeat struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -824,18 +773,14 @@ var File_proto_consesnuscraft_proto protoreflect.FileDescriptor
 
 const file_proto_consesnuscraft_proto_rawDesc = "" +
 	"\n" +
-	"\x1aproto/consesnuscraft.proto\x12\x0econsensuscraft\"\xf9\x06\n" +
+	"\x1aproto/consesnuscraft.proto\x12\x0econsensuscraft\"\xfe\x04\n" +
 	"\aMessage\x12Y\n" +
 	"\x15sync_database_request\x18\n" +
 	" \x01(\v2#.consensuscraft.SyncDatabaseRequestH\x00R\x13syncDatabaseRequest\x12P\n" +
 	"\x12sync_database_data\x18\v \x01(\v2 .consensuscraft.SyncDatabaseDataH\x00R\x10syncDatabaseData\x12\\\n" +
-	"\x16sync_database_response\x18\f \x01(\v2$.consensuscraft.SyncDatabaseResponseH\x00R\x14syncDatabaseResponse\x12\\\n" +
-	"\x16discover_nodes_request\x18\r \x01(\v2$.consensuscraft.DiscoverNodesRequestH\x00R\x14discoverNodesRequest\x12_\n" +
-	"\x17discover_nodes_response\x18\x0e \x01(\v2%.consensuscraft.DiscoverNodesResponseH\x00R\x15discoverNodesResponse\x12@\n" +
+	"\x16sync_database_response\x18\f \x01(\v2$.consensuscraft.SyncDatabaseResponseH\x00R\x14syncDatabaseResponse\x12@\n" +
 	"\fjoin_request\x18\x0f \x01(\v2\x1b.consensuscraft.JoinRequestH\x00R\vjoinRequest\x12C\n" +
-	"\rjoin_response\x18\x10 \x01(\v2\x1c.consensuscraft.JoinResponseH\x00R\fjoinResponse\x12:\n" +
-	"\n" +
-	"heart_beat\x18\x11 \x01(\v2\x19.consensuscraft.HeartBeatH\x00R\theartBeat\x12@\n" +
+	"\rjoin_response\x18\x10 \x01(\v2\x1c.consensuscraft.JoinResponseH\x00R\fjoinResponse\x12@\n" +
 	"\fclaim_player\x18\x12 \x01(\v2\x1b.consensuscraft.ClaimPlayerH\x00R\vclaimPlayer\x12L\n" +
 	"\x10update_inventory\x18\x13 \x01(\v2\x1f.consensuscraft.UpdateInventoryH\x00R\x0fupdateInventory\x12F\n" +
 	"\x0erelease_player\x18\x14 \x01(\v2\x1d.consensuscraft.ReleasePlayerH\x00R\rreleasePlayerB\t\n" +
@@ -870,10 +815,9 @@ const file_proto_consesnuscraft_proto_rawDesc = "" +
 	"\tsignature\x18\x03 \x01(\fR\tsignature\"E\n" +
 	"\rReleasePlayer\x12\x16\n" +
 	"\x06player\x18\x01 \x01(\tR\x06player\x12\x1c\n" +
-	"\tsignature\x18\x02 \x01(\fR\tsignature2[\n" +
-	"\x15ConsensusCraftService\x12B\n" +
-	"\n" +
-	"NodeStream\x12\x17.consensuscraft.Message\x1a\x17.consensuscraft.Message(\x010\x01B\n" +
+	"\tsignature\x18\x02 \x01(\fR\tsignature2W\n" +
+	"\x15ConsensusCraftService\x12>\n" +
+	"\x06Stream\x12\x17.consensuscraft.Message\x1a\x17.consensuscraft.Message(\x010\x01B\n" +
 	"Z\b./gen/pbb\x06proto3"
 
 var (
@@ -908,22 +852,19 @@ var file_proto_consesnuscraft_proto_depIdxs = []int32{
 	4,  // 0: consensuscraft.Message.sync_database_request:type_name -> consensuscraft.SyncDatabaseRequest
 	5,  // 1: consensuscraft.Message.sync_database_data:type_name -> consensuscraft.SyncDatabaseData
 	6,  // 2: consensuscraft.Message.sync_database_response:type_name -> consensuscraft.SyncDatabaseResponse
-	1,  // 3: consensuscraft.Message.discover_nodes_request:type_name -> consensuscraft.DiscoverNodesRequest
-	2,  // 4: consensuscraft.Message.discover_nodes_response:type_name -> consensuscraft.DiscoverNodesResponse
-	7,  // 5: consensuscraft.Message.join_request:type_name -> consensuscraft.JoinRequest
-	8,  // 6: consensuscraft.Message.join_response:type_name -> consensuscraft.JoinResponse
-	9,  // 7: consensuscraft.Message.heart_beat:type_name -> consensuscraft.HeartBeat
-	10, // 8: consensuscraft.Message.claim_player:type_name -> consensuscraft.ClaimPlayer
-	11, // 9: consensuscraft.Message.update_inventory:type_name -> consensuscraft.UpdateInventory
-	12, // 10: consensuscraft.Message.release_player:type_name -> consensuscraft.ReleasePlayer
-	3,  // 11: consensuscraft.DiscoverNodesResponse.nodes:type_name -> consensuscraft.NodeInfo
-	0,  // 12: consensuscraft.ConsensusCraftService.NodeStream:input_type -> consensuscraft.Message
-	0,  // 13: consensuscraft.ConsensusCraftService.NodeStream:output_type -> consensuscraft.Message
-	13, // [13:14] is the sub-list for method output_type
-	12, // [12:13] is the sub-list for method input_type
-	12, // [12:12] is the sub-list for extension type_name
-	12, // [12:12] is the sub-list for extension extendee
-	0,  // [0:12] is the sub-list for field type_name
+	7,  // 3: consensuscraft.Message.join_request:type_name -> consensuscraft.JoinRequest
+	8,  // 4: consensuscraft.Message.join_response:type_name -> consensuscraft.JoinResponse
+	10, // 5: consensuscraft.Message.claim_player:type_name -> consensuscraft.ClaimPlayer
+	11, // 6: consensuscraft.Message.update_inventory:type_name -> consensuscraft.UpdateInventory
+	12, // 7: consensuscraft.Message.release_player:type_name -> consensuscraft.ReleasePlayer
+	3,  // 8: consensuscraft.DiscoverNodesResponse.nodes:type_name -> consensuscraft.NodeInfo
+	0,  // 9: consensuscraft.ConsensusCraftService.Stream:input_type -> consensuscraft.Message
+	0,  // 10: consensuscraft.ConsensusCraftService.Stream:output_type -> consensuscraft.Message
+	10, // [10:11] is the sub-list for method output_type
+	9,  // [9:10] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_proto_consesnuscraft_proto_init() }
@@ -935,11 +876,8 @@ func file_proto_consesnuscraft_proto_init() {
 		(*Message_SyncDatabaseRequest)(nil),
 		(*Message_SyncDatabaseData)(nil),
 		(*Message_SyncDatabaseResponse)(nil),
-		(*Message_DiscoverNodesRequest)(nil),
-		(*Message_DiscoverNodesResponse)(nil),
 		(*Message_JoinRequest)(nil),
 		(*Message_JoinResponse)(nil),
-		(*Message_HeartBeat)(nil),
 		(*Message_ClaimPlayer)(nil),
 		(*Message_UpdateInventory)(nil),
 		(*Message_ReleasePlayer)(nil),

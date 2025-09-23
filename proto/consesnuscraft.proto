@@ -5,31 +5,25 @@ package consensuscraft;
 option go_package = "./gen/pb";
 
 service ConsensusCraftService {
-  // Bidirectional stream for all node communication
-  rpc NodeStream(stream Message) returns (stream Message);
+  rpc Stream(stream Message) returns (stream Message);
 }
 
-// Main message wrapper
 message Message {
   oneof content {
     // Network
     SyncDatabaseRequest sync_database_request = 10;
     SyncDatabaseData sync_database_data = 11;
     SyncDatabaseResponse sync_database_response = 12;
-    DiscoverNodesRequest discover_nodes_request = 13;
-    DiscoverNodesResponse discover_nodes_response = 14;
     JoinRequest join_request = 15;
     JoinResponse join_response = 16;
 
     // Node communication
-    HeartBeat heart_beat = 17;
     ClaimPlayer claim_player = 18;
     UpdateInventory update_inventory = 19;
     ReleasePlayer release_player = 20;
   }
 }
 
-// Network messages
 message DiscoverNodesRequest {}
 
 message DiscoverNodesResponse { repeated NodeInfo nodes = 1; }
@@ -59,7 +53,6 @@ message JoinResponse {
   repeated string players = 2;
 }
 
-// Node communication messages
 message HeartBeat {}
 
 message ClaimPlayer {

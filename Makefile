@@ -4,6 +4,7 @@
 install:
 	go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+	go install github.com/go-bindata/go-bindata/...@latest
 	npm install @minecraft/server
 
 # Pack mod into single mcpack file locally
@@ -32,8 +33,7 @@ unzip:
 
 # Generate gRPC golang code
 .PHONY: gen
-gen:
+gen: pack
 	mkdir -p gen/pb
 	protoc --go_out=. --go-grpc_out=. proto/consesnuscraft.proto
-	@echo "Generating mcpack addon..."
-	@$(MAKE) pack
+	go-bindata -o gen/xendchest/bindata.go -pkg xendchest x_ender_chest.mcpack

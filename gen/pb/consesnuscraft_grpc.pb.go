@@ -19,15 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ConsensusCraftService_NodeStream_FullMethodName = "/consensuscraft.ConsensusCraftService/NodeStream"
+	ConsensusCraftService_Stream_FullMethodName = "/consensuscraft.ConsensusCraftService/Stream"
 )
 
 // ConsensusCraftServiceClient is the client API for ConsensusCraftService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ConsensusCraftServiceClient interface {
-	// Bidirectional stream for all node communication
-	NodeStream(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[Message, Message], error)
+	Stream(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[Message, Message], error)
 }
 
 type consensusCraftServiceClient struct {
@@ -38,9 +37,9 @@ func NewConsensusCraftServiceClient(cc grpc.ClientConnInterface) ConsensusCraftS
 	return &consensusCraftServiceClient{cc}
 }
 
-func (c *consensusCraftServiceClient) NodeStream(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[Message, Message], error) {
+func (c *consensusCraftServiceClient) Stream(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[Message, Message], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &ConsensusCraftService_ServiceDesc.Streams[0], ConsensusCraftService_NodeStream_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &ConsensusCraftService_ServiceDesc.Streams[0], ConsensusCraftService_Stream_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -49,14 +48,13 @@ func (c *consensusCraftServiceClient) NodeStream(ctx context.Context, opts ...gr
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type ConsensusCraftService_NodeStreamClient = grpc.BidiStreamingClient[Message, Message]
+type ConsensusCraftService_StreamClient = grpc.BidiStreamingClient[Message, Message]
 
 // ConsensusCraftServiceServer is the server API for ConsensusCraftService service.
 // All implementations must embed UnimplementedConsensusCraftServiceServer
 // for forward compatibility.
 type ConsensusCraftServiceServer interface {
-	// Bidirectional stream for all node communication
-	NodeStream(grpc.BidiStreamingServer[Message, Message]) error
+	Stream(grpc.BidiStreamingServer[Message, Message]) error
 	mustEmbedUnimplementedConsensusCraftServiceServer()
 }
 
@@ -67,8 +65,8 @@ type ConsensusCraftServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedConsensusCraftServiceServer struct{}
 
-func (UnimplementedConsensusCraftServiceServer) NodeStream(grpc.BidiStreamingServer[Message, Message]) error {
-	return status.Errorf(codes.Unimplemented, "method NodeStream not implemented")
+func (UnimplementedConsensusCraftServiceServer) Stream(grpc.BidiStreamingServer[Message, Message]) error {
+	return status.Errorf(codes.Unimplemented, "method Stream not implemented")
 }
 func (UnimplementedConsensusCraftServiceServer) mustEmbedUnimplementedConsensusCraftServiceServer() {}
 func (UnimplementedConsensusCraftServiceServer) testEmbeddedByValue()                               {}
@@ -91,12 +89,12 @@ func RegisterConsensusCraftServiceServer(s grpc.ServiceRegistrar, srv ConsensusC
 	s.RegisterService(&ConsensusCraftService_ServiceDesc, srv)
 }
 
-func _ConsensusCraftService_NodeStream_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(ConsensusCraftServiceServer).NodeStream(&grpc.GenericServerStream[Message, Message]{ServerStream: stream})
+func _ConsensusCraftService_Stream_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(ConsensusCraftServiceServer).Stream(&grpc.GenericServerStream[Message, Message]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type ConsensusCraftService_NodeStreamServer = grpc.BidiStreamingServer[Message, Message]
+type ConsensusCraftService_StreamServer = grpc.BidiStreamingServer[Message, Message]
 
 // ConsensusCraftService_ServiceDesc is the grpc.ServiceDesc for ConsensusCraftService service.
 // It's only intended for direct use with grpc.RegisterService,
@@ -107,8 +105,8 @@ var ConsensusCraftService_ServiceDesc = grpc.ServiceDesc{
 	Methods:     []grpc.MethodDesc{},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "NodeStream",
-			Handler:       _ConsensusCraftService_NodeStream_Handler,
+			StreamName:    "Stream",
+			Handler:       _ConsensusCraftService_Stream_Handler,
 			ServerStreams: true,
 			ClientStreams: true,
 		},
