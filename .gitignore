@@ -33,6 +33,26 @@ go.work.sum
 bsh.md
 trash/
 *.zip
+*.mcpack
 
 server
 inventories.ldb
+
+config/default/*
+
+behavior_packs/*
+definitions/*
+development_resource_packs/*
+development_behavior_packs/*
+development_skin_packs/*
+resource_packs/*
+worlds/*
+allowlist.json
+bedrock_server
+bedrock_server_how_to.html
+Dedicated_Server.txt
+packetlimitconfig.json
+permissions.json
+profanity_filter.wlist
+release-notes.txt
+server.properties

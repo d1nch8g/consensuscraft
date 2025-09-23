@@ -81,7 +81,6 @@ allow-cheats=true # Required for inventory management
 difficulty=normal
 force-gamemode=true
 gamemode=survival
-level-seed=randomized # Each node uses unique world gen
 ```
 
 ### Client Validation
