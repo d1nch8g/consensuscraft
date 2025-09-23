@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/d1nch8g/jaft/gen/pb"
+	"github.com/d1nch8g/consensuscraft/gen/pb"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/iterator"
 	"github.com/syndtr/goleveldb/leveldb/util"

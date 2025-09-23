@@ -3,9 +3,9 @@ package main
 import (
 	"time"
 
-	"github.com/d1nch8g/jaft/bds"
-	"github.com/d1nch8g/jaft/config"
-	"github.com/d1nch8g/jaft/database"
+	"github.com/d1nch8g/consensuscraft/bds"
+	"github.com/d1nch8g/consensuscraft/config"
+	"github.com/d1nch8g/consensuscraft/database"
 	"github.com/sirupsen/logrus"
 )
 

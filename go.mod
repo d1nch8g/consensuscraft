@@ -1,4 +1,4 @@
-module github.com/d1nch8g/jaft
+module github.com/d1nch8g/consensuscraft
 
 go 1.23.0
 
