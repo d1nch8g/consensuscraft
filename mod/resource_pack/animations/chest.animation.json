@@ -1,0 +1,63 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"animation.chest.open": {
+			"loop": "hold_on_last_frame",
+			"animation_length": 0.625,
+			"override_previous_animation": true,
+			"bones": {
+				"bone2": {
+					"rotation": {
+						"0.0": [0, 0, 0],
+						"0.0417": [-5.11393, 0, 0],
+						"0.0833": [-17.51226, 0, 0],
+						"0.125": [-34.05636, 0, 0],
+						"0.2083": [-70.94364, 0, 0],
+						"0.25": [-87.48774, 0, 0],
+						"0.2917": [-99.88607, 0, 0],
+						"0.3333": [-105, 0, 0]
+					}
+				}
+			}
+		},
+		"animation.chest.close": {
+			"loop": "hold_on_last_frame",
+			"animation_length": 0.625,
+			"override_previous_animation": true,
+			"bones": {
+				"bone2": {
+					"rotation": {
+						"0.0": [-105, 0, 0],
+						"0.0417": [-99.88607, 0, 0],
+						"0.0833": [-87.48774, 0, 0],
+						"0.125": [-70.94364, 0, 0],
+						"0.2083": [-34.05636, 0, 0],
+						"0.25": [-17.51226, 0, 0],
+						"0.2917": [-5.11393, 0, 0],
+						"0.3333": [0, 0, 0]
+					}
+				}
+			}
+		},
+		"animation.chest.opened": {
+			"loop": true,
+			"animation_length": 0.5,
+			"override_previous_animation": true,
+			"bones": {
+				"bone2": {
+					"rotation": [-105, 0, 0]
+				}
+			}
+		},
+		"animation.chest.closed_idle": {
+			"loop": true,
+			"animation_length": 0.5,
+			"override_previous_animation": true,
+			"bones": {
+				"bone2": {
+					"rotation": [0, 0, 0]
+				}
+			}
+		}
+	}
+}

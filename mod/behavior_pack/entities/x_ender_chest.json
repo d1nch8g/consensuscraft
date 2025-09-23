@@ -1,0 +1,156 @@
+{
+  "format_version": "1.20.60",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "x_ender_chest:x_ender_chest",
+      "is_spawnable": false,
+      "is_summonable": true,
+      "is_experimental": false,
+      "properties": {
+        "x_ender_chest:opened": {
+          "client_sync": true,
+          "default": false,
+          "type": "bool"
+        }
+      }
+    },
+    "component_groups": {
+      "x_ender_chest:despawn": {
+        "minecraft:instant_despawn": {
+          "remove_child_entities": false
+        }
+      }
+    },
+    "components": {
+      "minecraft:type_family": {
+        "family": ["chest", "inanimate"]
+      },
+      "minecraft:collision_box": {
+        "height": 0,
+        "width": 0
+      },
+      "minecraft:entity_sensor": {
+        "subsensors": [
+          {
+            "minimum_count": 1,
+            "maximum_count": 1,
+            "event_filters": {
+              "all_of": [
+                {
+                  "test": "bool_property",
+                  "domain": "x_ender_chest:opened",
+                  "subject": "self",
+                  "value": false
+                },
+                {
+                  "test": "is_family",
+                  "subject": "other",
+                  "value": "player"
+                },
+                {
+                  "test": "has_container_open",
+                  "subject": "other",
+                  "value": true
+                }
+              ]
+            },
+            "event": "x_ender_chest:chest_open"
+          },
+          {
+            "require_all": false,
+            "minimum_count": 1,
+            "maximum_count": 1,
+            "event_filters": {
+              "all_of": [
+                {
+                  "test": "bool_property",
+                  "domain": "x_ender_chest:opened",
+                  "subject": "self",
+                  "value": true
+                },
+                {
+                  "test": "has_tag",
+                  "subject": "other",
+                  "operator": "==",
+                  "value": "interacted"
+                },
+                {
+                  "test": "has_container_open",
+                  "subject": "other",
+                  "value": false
+                }
+              ]
+            },
+            "event": "x_ender_chest:chest_close"
+          }
+        ]
+      },
+      "minecraft:custom_hit_test": {
+        "hitboxes": [
+          {
+            "width": 1,
+            "height": 0.25,
+            "pivot": [0, 0.5, 0]
+          }
+        ]
+      },
+      "minecraft:health": {
+        "value": 1
+      },
+      "minecraft:fire_immune": {},
+      "minecraft:damage_sensor": {
+        "triggers": {
+          "cause": "all",
+          "deals_damage": false
+        }
+      },
+      "minecraft:inventory": {
+        "can_be_siphoned_from": true,
+        "inventory_size": 45,
+        "container_type": "inventory"
+      },
+      "minecraft:nameable": {
+        "allow_name_tag_renaming": false,
+        "always_show": false
+      },
+      "minecraft:timer": {
+        "time": 0.1,
+        "looping": true,
+        "time_down_event": {
+          "event": "tick",
+          "target": "self"
+        }
+      }
+    },
+    "events": {
+      "x_ender_chest:despawn_chest": {
+        "add": {
+          "component_groups": ["x_ender_chest:despawn"]
+        }
+      },
+      "tick": {
+        "queue_command": {
+          "command": [
+            "execute if block ~~~ air run event entity @s x_ender_chest:despawn_chest"
+          ]
+        }
+      },
+      "x_ender_chest:chest_open": {
+        "set_property": {
+          "x_ender_chest:opened": true
+        },
+        "queue_command": {
+          "command": ["scriptevent x_ender_chest:open"]
+        }
+      },
+      "x_ender_chest:chest_close": {
+        "set_property": {
+          "x_ender_chest:opened": false
+        },
+        "queue_command": {
+          "command": ["scriptevent x_ender_chest:close"]
+        }
+      }
+    }
+  }
+}

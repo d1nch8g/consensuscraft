@@ -1,0 +1,84 @@
+{
+  "format_version": "1.20.60",
+  "minecraft:entity": {
+    "description": {
+      "identifier": "x_ender_chest:x_ender_chest_top",
+      "is_spawnable": false,
+      "is_summonable": true,
+      "is_experimental": false,
+      "properties": {
+        "x_ender_chest:opened": {
+          "type": "bool",
+          "default": false,
+          "client_sync": true
+        }
+      }
+    },
+    "component_groups": {
+      "x_ender_chest:despawn": {
+        "minecraft:instant_despawn": {
+          "remove_child_entities": false
+        }
+      }
+    },
+    "components": {
+      "minecraft:collision_box": {
+        "height": 1,
+        "width": 1
+      },
+      "minecraft:custom_hit_test": {
+        "hitboxes": [
+          {
+            "width": 1,
+            "height": 1,
+            "pivot": [0, 0, 0]
+          }
+        ]
+      },
+      "minecraft:health": {
+        "value": 1
+      },
+      "minecraft:fire_immune": {},
+      "minecraft:damage_sensor": {
+        "triggers": {
+          "cause": "all",
+          "deals_damage": false
+        }
+      },
+      "minecraft:nameable": {
+        "allow_name_tag_renaming": false,
+        "always_show": false
+      },
+      "minecraft:timer": {
+        "time": 0.1,
+        "looping": true,
+        "time_down_event": {
+          "event": "tick",
+          "target": "self"
+        }
+      },
+      "minecraft:type_family": {
+        "family": ["chest", "top", "inanimate"]
+      }
+    },
+    "events": {
+      "minecraft:entity_spawned": {
+        "set_property": {
+          "x_ender_chest:opened": false
+        }
+      },
+      "x_ender_chest:despawn_chest": {
+        "add": {
+          "component_groups": ["x_ender_chest:despawn"]
+        }
+      },
+      "tick": {
+        "queue_command": {
+          "command": [
+            "execute unless block ~~~ x_ender_chest:x_ender_chest run event entity @s x_ender_chest:despawn_chest"
+          ]
+        }
+      }
+    }
+  }
+}

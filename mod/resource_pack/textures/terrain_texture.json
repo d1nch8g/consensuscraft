@@ -1,0 +1,14 @@
+{
+  "num_mip_levels": 4,
+  "padding": 8,
+  "resource_pack_name": "xenderchest",
+  "texture_name": "atlas.terrain",
+  "texture_data": {
+    "xenderchest": {
+      "textures": ["textures/blocks/xenderchest"]
+    },
+    "xenderchest_open": {
+      "textures": ["textures/blocks/xenderchest_open"]
+    }
+  }
+}

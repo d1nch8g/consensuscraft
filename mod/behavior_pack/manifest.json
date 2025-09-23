@@ -1,0 +1,41 @@
+{
+  "format_version": 2,
+  "metadata": {
+    "authors": ["d1nch8g"],
+    "generated_with": {
+      "bridge": ["2.7.34"],
+      "dash": ["0.11.7"]
+    }
+  },
+  "header": {
+    "name": "X Ender Chest",
+    "description": "Programmable ender chest, replacing vanilla one!",
+    "min_engine_version": [1, 21, 102],
+    "uuid": "9e544ffa-b8ba-48a8-84f9-44caf23319cc",
+    "version": [1, 0, 0]
+  },
+  "modules": [
+    {
+      "type": "data",
+      "uuid": "5473108d-8fe9-4704-85dc-dfc80404e93a",
+      "version": [1, 0, 0]
+    },
+    {
+      "type": "script",
+      "language": "javascript",
+      "uuid": "d10df7f1-a263-41bc-97a3-577ac4fef758",
+      "entry": "scripts/main.js",
+      "version": [1, 0, 0]
+    }
+  ],
+  "dependencies": [
+    {
+      "module_name": "@minecraft/server",
+      "version": "2.0.0"
+    },
+    {
+      "module_name": "@minecraft/server-ui",
+      "version": "2.0.0"
+    }
+  ]
+}

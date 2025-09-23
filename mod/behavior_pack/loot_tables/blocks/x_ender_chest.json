@@ -1,0 +1,58 @@
+{
+  "type": "block",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "item",
+          "name": "x_ender_chest:x_ender_chest"
+        }
+      ],
+      "conditions": [
+        {
+          "condition": "match_tool",
+          "enchantments": [
+            {
+              "enchantment": "minecraft:silk_touch",
+              "levels": {
+                "range_min": 1
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "item",
+          "name": "minecraft:obsidian",
+          "functions": [
+            {
+              "function": "set_count",
+              "count": 8
+            }
+          ]
+        }
+      ],
+      "conditions": [
+        {
+          "condition": "inverted",
+          "term": {
+            "condition": "match_tool",
+            "enchantments": [
+              {
+                "enchantment": "minecraft:silk_touch",
+                "levels": {
+                  "range_min": 1
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
