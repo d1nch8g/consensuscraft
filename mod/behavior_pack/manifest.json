@@ -11,19 +11,19 @@
     "name": "X Ender Chest",
     "description": "Programmable ender chest, replacing vanilla one!",
     "min_engine_version": [1, 21, 102],
-    "uuid": "9e544ffa-b8ba-48a8-84f9-44caf23319cc",
+    "uuid": "4b164dc6-539d-42b9-967e-54f99580d0fd",
     "version": [1, 0, 0]
   },
   "modules": [
     {
       "type": "data",
-      "uuid": "5473108d-8fe9-4704-85dc-dfc80404e93a",
+      "uuid": "e3a13fbc-5fd5-4129-922e-cda4b77c3d10",
       "version": [1, 0, 0]
     },
     {
       "type": "script",
       "language": "javascript",
-      "uuid": "d10df7f1-a263-41bc-97a3-577ac4fef758",
+      "uuid": "17fb7ec9-cd43-4d1c-a544-6ecfd04deb71",
       "entry": "scripts/main.js",
       "version": [1, 0, 0]
     }

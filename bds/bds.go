@@ -8,19 +8,22 @@ import (
 	"os/exec"
 )
 
-// InventoryCallback defines the callback function type for inventory operations
-type InventoryCallback func(playerName string) ([]byte, error)
+// InventoryReceiveCallback defines the callback function type for inventory operations
+type InventoryReceiveCallback func(playerName string) ([]byte, error)
+type InventoryUpdateCallback func(playerName string, inventory []byte) error
 
 // InventoryUpdate represents an inventory update event
 type InventoryUpdate struct {
 	PlayerName string
 	Inventory  []byte
+	Server     string
 }
 
 // Parameters defines the configuration parameters for the BDS
 type Parameters struct {
-	InventoryCallback InventoryCallback
-	StartTrigger      chan struct{}
+	InventoryReceiveCallback InventoryReceiveCallback
+	InventoryUpdateCallback  InventoryUpdateCallback
+	StartTrigger             chan struct{}
 }
 
 // Bds represents the Bedrock Dedicated Server instance
@@ -41,7 +44,7 @@ type Bds struct {
 
 // New creates a new Bedrock Dedicated Server instance and starts the management loop
 func New(params Parameters) (*Bds, error) {
-	if params.InventoryCallback == nil {
+	if params.InventoryReceiveCallback == nil {
 		return nil, fmt.Errorf("inventory callback cannot be nil")
 	}
 
@@ -69,8 +72,11 @@ func New(params Parameters) (*Bds, error) {
 		PlayerLogin:     make(chan string, 100),
 		PlayerLogout:    make(chan string, 100),
 		config:          config,
-		inventory:       NewInventoryManager(params.InventoryCallback),
-		logs:            NewLogMonitor(),
+		inventory: NewInventoryManager(
+			params.InventoryReceiveCallback,
+			params.InventoryUpdateCallback,
+		),
+		logs: NewLogMonitor(),
 	}
 
 	// Create server manager
@@ -109,7 +115,7 @@ func New(params Parameters) (*Bds, error) {
 				// to enable both direct I/O piping AND log parsing for player events
 				var stdin io.WriteCloser
 				var stdout, stderr io.ReadCloser
-				
+
 				serverProcess, stdin, stdout, stderr, err = bds.server.StartWithPipes()
 				if err != nil {
 					log.Printf("BDS: Failed to start server: %v", err)

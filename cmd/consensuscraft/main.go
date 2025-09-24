@@ -17,8 +17,11 @@ func main() {
 	runBDS := make(chan struct{})
 
 	bds, err := bds.New(bds.Parameters{
-		InventoryCallback: func(playerName string) ([]byte, error) {
+		InventoryReceiveCallback: func(playerName string) ([]byte, error) {
 			return inventories.Get([]byte(playerName))
+		},
+		InventoryUpdateCallback: func(playerName string, inventory []byte) error {
+			return inventories.Put([]byte(playerName), inventory)
 		},
 		StartTrigger: runBDS,
 	})

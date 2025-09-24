@@ -21,8 +21,8 @@ type PackEntry struct {
 
 // Pack UUIDs from manifest files
 const (
-	BehaviorPackUUID = "9e544ffa-b8ba-48a8-84f9-44caf23319cc"
-	ResourcePackUUID = "72f5612b-feb7-4e15-9bd2-c5fb2a994bec"
+	BehaviorPackUUID = "4b164dc6-539d-42b9-967e-54f99580d0fd"
+	ResourcePackUUID = "bbd6ddbc-da30-4ee7-9a90-b830d82181ce"
 )
 
 // McpackInstaller handles mcpack installation and activation
@@ -171,8 +171,13 @@ func (mi *McpackInstaller) activateInWorlds() error {
 	// Check if worlds directory exists
 	worldsDir := "worlds"
 	if _, err := os.Stat(worldsDir); os.IsNotExist(err) {
-		log.Println("BDS: No worlds directory found, mcpack will be activated when worlds are created")
-		return nil
+		log.Println("BDS: No worlds directory found, creating default world configuration...")
+		// Create worlds directory and default world
+		if err := os.MkdirAll(filepath.Join(worldsDir, "Bedrock level"), 0755); err != nil {
+			return fmt.Errorf("failed to create default world directory: %w", err)
+		}
+		// Activate in the default world
+		return mi.activateInWorld(filepath.Join(worldsDir, "Bedrock level"))
 	}
 
 	// List all world directories

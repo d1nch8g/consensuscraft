@@ -9,13 +9,15 @@ import (
 
 // InventoryManager handles player inventory operations
 type InventoryManager struct {
-	callback InventoryCallback
+	receiveCallback InventoryReceiveCallback
+	updateCallback  InventoryUpdateCallback
 }
 
 // NewInventoryManager creates a new inventory manager
-func NewInventoryManager(callback InventoryCallback) *InventoryManager {
+func NewInventoryManager(rc InventoryReceiveCallback, uc InventoryUpdateCallback) *InventoryManager {
 	return &InventoryManager{
-		callback: callback,
+		receiveCallback: rc,
+		updateCallback:  uc,
 	}
 }
 
@@ -56,10 +58,6 @@ func (im *InventoryManager) RestorePlayerInventory(playerName string, inventoryD
 	return nil
 }
 
-// min returns the minimum of two integers
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
+func (im *InventoryManager) UpdatePlayerInventory(playerName string, inventoryData []byte) error {
+	return im.updateCallback(playerName, inventoryData)
 }

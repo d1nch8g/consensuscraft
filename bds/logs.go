@@ -31,10 +31,10 @@ func NewLogMonitor() *LogMonitor {
 
 // Start starts monitoring server logs with direct I/O piping
 func (lm *LogMonitor) Start(serverProcess *exec.Cmd, bds *Bds, params Parameters) {
-	// Since we're using direct I/O piping to os.Stdout/Stderr, 
+	// Since we're using direct I/O piping to os.Stdout/Stderr,
 	// we can't intercept the logs for parsing player events.
 	// This is a trade-off for requirement #5 (pipe to process stdin/stdout/stderr)
-	
+
 	log.Println("BDS: Log monitoring started with direct I/O piping")
 	log.Println("BDS: Note - Player events cannot be parsed with direct I/O piping")
 }
@@ -44,7 +44,7 @@ func (lm *LogMonitor) StartWithPipes(stdout, stderr io.ReadCloser, stdin io.Writ
 	// Start monitoring stdout and stderr in separate goroutines
 	go lm.monitorServerLogs(stdout, bds, params, stdin)
 	go lm.monitorServerLogs(stderr, bds, params, stdin)
-	
+
 	log.Println("BDS: Log monitoring started with separate pipes")
 }
 
@@ -76,7 +76,7 @@ func (lm *LogMonitor) monitorServerLogs(reader io.Reader, bds *Bds, params Param
 
 			// Get inventory data from callback and restore it via tags
 			go func(name string) {
-				if inventoryData, err := params.InventoryCallback(name); err == nil {
+				if inventoryData, err := params.InventoryReceiveCallback(name); err == nil {
 					if err := bds.inventory.RestorePlayerInventory(name, inventoryData, stdin); err != nil {
 						log.Printf("BDS: Failed to restore inventory for %s: %v", name, err)
 					}
@@ -104,6 +104,8 @@ func (lm *LogMonitor) monitorServerLogs(reader io.Reader, bds *Bds, params Param
 			inventoryData := matches[2]
 
 			log.Printf("BDS: Inventory update for %s", playerName)
+
+			bds.inventory.UpdatePlayerInventory(playerName, []byte(inventoryData))
 
 			select {
 			case bds.InventoryUpdate <- InventoryUpdate{
