@@ -105,12 +105,15 @@ func (lm *LogMonitor) monitorServerLogs(reader io.Reader, bds *Bds, params Param
 
 			log.Printf("BDS: Inventory update for %s", playerName)
 
-			bds.inventory.UpdatePlayerInventory(playerName, []byte(inventoryData))
+			// Wrap the inventory data in JSON array brackets to make it valid JSON
+			jsonInventoryData := "[" + inventoryData + "]"
+
+			bds.inventory.UpdatePlayerInventory(playerName, []byte(jsonInventoryData))
 
 			select {
 			case bds.InventoryUpdate <- InventoryUpdate{
 				PlayerName: playerName,
-				Inventory:  []byte(inventoryData),
+				Inventory:  []byte(jsonInventoryData),
 			}:
 			default:
 				log.Printf("BDS: InventoryUpdate channel full, dropping event for %s", playerName)

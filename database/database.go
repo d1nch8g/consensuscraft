@@ -2,6 +2,8 @@ package database
 
 import (
 	"errors"
+	"os"
+	"path/filepath"
 	"sync"
 	"time"
 
@@ -28,6 +30,11 @@ type DB struct {
 var ErrClosed = errors.New("database is closed")
 
 func New(path string) (*DB, error) {
+	err := os.RemoveAll(filepath.Join(path, "LOCK"))
+	if err != nil {
+		return nil, err
+	}
+
 	ldb, err := leveldb.OpenFile(path, nil)
 	if err != nil {
 		return nil, err

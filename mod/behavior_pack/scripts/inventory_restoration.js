@@ -69,6 +69,9 @@ function restoreInventoryFromTags(player, inventoryTags) {
             jsonString += dataPart;
         }
 
+        // Unescape quotes that were escaped by the Go code
+        jsonString = jsonString.replace(/\\"/g, '"');
+
 
         // Parse the inventory data
         const inventoryData = JSON.parse(jsonString);
