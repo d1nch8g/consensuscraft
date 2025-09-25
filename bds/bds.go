@@ -4,8 +4,9 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 	"os/exec"
+
+	"github.com/d1nch8g/consensuscraft/logger"
 )
 
 // InventoryReceiveCallback defines the callback function type for inventory operations
@@ -37,10 +38,11 @@ type Bds struct {
 	PlayerLogout chan string
 
 	// Internal components
-	server    *Server
-	config    *Config
-	inventory *InventoryManager
-	logs      *LogMonitor
+	server      *Server
+	config      *Config
+	inventory   *InventoryManager
+	logs        *LogMonitor
+	stdinWrapper *StdinWrapper
 }
 
 // New creates a new Bedrock Dedicated Server instance and starts the management loop
@@ -92,25 +94,29 @@ func New(params Parameters) (*Bds, error) {
 
 		var serverProcess *exec.Cmd
 
-		log.Println("BDS: Starting management loop")
+		logger.Println("Starting management loop")
 
 		for {
 			select {
 			case <-ctx.Done():
-				log.Println("BDS: Context cancelled, shutting down")
+				logger.Println("Context cancelled, shutting down")
+				if bds.stdinWrapper != nil {
+					bds.stdinWrapper.Stop()
+					bds.stdinWrapper = nil
+				}
 				if serverProcess != nil {
 					bds.server.Stop(serverProcess)
 				}
-				log.Println("BDS: Shutdown complete")
+				logger.Println("Shutdown complete")
 				return
 
 			case <-params.StartTrigger:
 				if serverProcess != nil {
-					log.Println("BDS: Server is already running")
+					logger.Println("Server is already running")
 					continue
 				}
 
-				log.Println("BDS: Starting Bedrock Dedicated Server")
+				logger.Println("Starting Bedrock Dedicated Server")
 
 				// For requirement #5 (pipe stdin/stdout/stderr), we use StartWithPipes
 				// to enable both direct I/O piping AND log parsing for player events
@@ -119,25 +125,35 @@ func New(params Parameters) (*Bds, error) {
 
 				serverProcess, stdin, stdout, stderr, err = bds.server.StartWithPipes()
 				if err != nil {
-					log.Printf("BDS: Failed to start server: %v", err)
+					logger.Printf("Failed to start server: %v", err)
 					serverProcess = nil
 					continue
 				}
 
-				log.Printf("BDS: Server started with PID %d", serverProcess.Process.Pid)
+				logger.Printf("Server started with PID %d", serverProcess.Process.Pid)
 
 				// Start log monitoring with pipes that also output to stdout/stderr
 				bds.logs.StartWithPipes(stdout, stderr, stdin, bds, params)
+
+				// Start stdin wrapper for interactive command input
+				bds.stdinWrapper = NewStdinWrapper(stdin)
+				bds.stdinWrapper.Start()
 
 				// Monitor server process in a separate goroutine
 				go func(proc *exec.Cmd) {
 					err := proc.Wait()
 					serverProcess = nil
 
+					// Stop stdin wrapper when server exits
+					if bds.stdinWrapper != nil {
+						bds.stdinWrapper.Stop()
+						bds.stdinWrapper = nil
+					}
+
 					if err != nil {
-						log.Printf("BDS: Server process exited unexpectedly: %v", err)
+						logger.Printf("Server process exited unexpectedly: %v", err)
 					} else {
-						log.Println("BDS: Server process exited")
+						logger.Println("Server process exited")
 					}
 				}(serverProcess)
 			}
@@ -147,9 +163,9 @@ func New(params Parameters) (*Bds, error) {
 	// Send initial start trigger
 	select {
 	case params.StartTrigger <- struct{}{}:
-		log.Println("BDS: Initial start trigger sent")
+		logger.Println("Initial start trigger sent")
 	default:
-		log.Println("BDS: Start trigger channel full")
+		logger.Println("Start trigger channel full")
 	}
 
 	return bds, nil

@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"time"
+
+	"github.com/d1nch8g/consensuscraft/logger"
 )
 
 // Server manages the bedrock server process
@@ -41,7 +42,7 @@ func (s *Server) Start() (*exec.Cmd, error) {
 
 	// Create server command
 	serverProcess := exec.CommandContext(s.ctx, absServerPath)
-	
+
 	// Set working directory
 	if filepath.Dir(s.serverPath) != "." {
 		serverProcess.Dir = filepath.Dir(s.serverPath)
@@ -72,23 +73,23 @@ func (s *Server) Stop(serverProcess *exec.Cmd) {
 		return
 	}
 
-	log.Println("BDS: Stopping server process")
-	
+	logger.Println("Stopping server process")
+
 	// Try to send interrupt signal first
 	if err := serverProcess.Process.Signal(os.Interrupt); err != nil {
-		log.Printf("BDS: Failed to send interrupt signal: %v", err)
-		
+		logger.Printf("Failed to send interrupt signal: %v", err)
+
 		// If interrupt fails, try to kill the process
 		if killErr := serverProcess.Process.Kill(); killErr != nil {
-			log.Printf("BDS: Failed to kill server process: %v", killErr)
+			logger.Printf("Failed to kill server process: %v", killErr)
 		}
 	}
 }
 
 // scheduleGameruleCommand sends the gamerule showcoordinates command after startup
 func (s *Server) scheduleGameruleCommand(serverProcess *exec.Cmd) {
-	log.Println("BDS: Scheduling gamerule showcoordinates command for 10 seconds after startup")
-	
+	logger.Println("Scheduling gamerule showcoordinates command for 10 seconds after startup")
+
 	select {
 	case <-s.ctx.Done():
 		return
@@ -96,7 +97,7 @@ func (s *Server) scheduleGameruleCommand(serverProcess *exec.Cmd) {
 		// Since we're piping directly to os.Stdin, we need to write to the process stdin
 		// But since we set it to os.Stdin, we can't write to it programmatically
 		// We'll need to modify this approach
-		log.Println("BDS: Note - gamerule command should be sent manually or through a different mechanism")
+		logger.Println("Note - gamerule command should be sent manually or through a different mechanism")
 	}
 }
 
@@ -110,7 +111,7 @@ func (s *Server) StartWithPipes() (*exec.Cmd, io.WriteCloser, io.ReadCloser, io.
 
 	// Create server command
 	serverProcess := exec.CommandContext(s.ctx, absServerPath)
-	
+
 	// Set working directory
 	if filepath.Dir(s.serverPath) != "." {
 		serverProcess.Dir = filepath.Dir(s.serverPath)
@@ -154,8 +155,8 @@ func (s *Server) StartWithPipes() (*exec.Cmd, io.WriteCloser, io.ReadCloser, io.
 
 // scheduleGameruleCommandWithPipe sends the gamerule and scoreboard commands through the stdin pipe
 func (s *Server) scheduleGameruleCommandWithPipe(stdin io.WriteCloser) {
-	log.Println("BDS: Scheduling gamerule showcoordinates and scoreboard commands for 10 seconds after startup")
-	
+	logger.Println("Scheduling gamerule showcoordinates and scoreboard commands for 10 seconds after startup")
+
 	select {
 	case <-s.ctx.Done():
 		return
@@ -163,36 +164,36 @@ func (s *Server) scheduleGameruleCommandWithPipe(stdin io.WriteCloser) {
 		// Send gamerule command
 		gameruleCommand := "gamerule showcoordinates true\n"
 		if _, err := stdin.Write([]byte(gameruleCommand)); err != nil {
-			log.Printf("BDS: Failed to send gamerule showcoordinates command: %v", err)
+			logger.Printf("Failed to send gamerule showcoordinates command: %v", err)
 		} else {
-			log.Println("BDS: Successfully sent gamerule showcoordinates true command")
+			logger.Println("Successfully sent gamerule showcoordinates true command")
 		}
-		
+
 		// Wait a moment before sending scoreboard commands
 		time.Sleep(1 * time.Second)
-		
+
 		// Send scoreboard setup commands
 		scoreboardObjectiveCommand := "scoreboard objectives add serverName dummy\n"
 		if _, err := stdin.Write([]byte(scoreboardObjectiveCommand)); err != nil {
-			log.Printf("BDS: Failed to send scoreboard objectives command: %v", err)
+			logger.Printf("Failed to send scoreboard objectives command: %v", err)
 		} else {
-			log.Println("BDS: Successfully sent scoreboard objectives add serverName dummy command")
+			logger.Println("Successfully sent scoreboard objectives add serverName dummy command")
 		}
-		
+
 		// Wait a moment before setting the server name
 		time.Sleep(500 * time.Millisecond)
-		
+
 		// Set the server name in scoreboard (use WebAddress if available, otherwise use a default)
 		serverName := s.webAddress
 		if serverName == "" {
 			serverName = "unknown-server"
 		}
-		
+
 		scoreboardSetCommand := fmt.Sprintf("scoreboard players set \"%s\" serverName 1\n", serverName)
 		if _, err := stdin.Write([]byte(scoreboardSetCommand)); err != nil {
-			log.Printf("BDS: Failed to send scoreboard players set command: %v", err)
+			logger.Printf("Failed to send scoreboard players set command: %v", err)
 		} else {
-			log.Printf("BDS: Successfully set server name in scoreboard: %s", serverName)
+			logger.Printf("Successfully set server name in scoreboard: %s", serverName)
 		}
 	}
 }

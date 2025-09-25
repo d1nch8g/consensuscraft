@@ -3,8 +3,9 @@ package bds
 import (
 	"fmt"
 	"io"
-	"log"
 	"strings"
+
+	"github.com/d1nch8g/consensuscraft/logger"
 )
 
 // InventoryManager handles player inventory operations
@@ -52,7 +53,7 @@ func (im *InventoryManager) RestorePlayerInventory(playerName string, inventoryD
 			return fmt.Errorf("failed to send tag command: %w", err)
 		}
 
-		log.Printf("BDS: Added inventory tag %d for player %s", i, playerName)
+		logger.Printf("Added inventory tag %d for player %s", i, playerName)
 	}
 
 	return nil

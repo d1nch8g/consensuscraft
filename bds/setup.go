@@ -4,11 +4,12 @@ import (
 	"archive/zip"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
+
+	"github.com/d1nch8g/consensuscraft/logger"
 )
 
 // Setup handles server setup scenarios
@@ -42,42 +43,42 @@ func init() {
 
 // EnsureServer ensures the bedrock server is available based on current directory state
 func (s *Setup) EnsureServer() (string, error) {
-	log.Println("BDS: Checking server setup scenarios...")
+	logger.Println("Checking server setup scenarios...")
 
 	var serverPath string
 
 	// Scenario 2.1: Check if server executable exists in current directory
 	if path := s.checkCurrentDirectory(); path != "" {
-		log.Printf("BDS: Found server in current directory: %s", path)
+		logger.Printf("Found server in current directory: %s", path)
 		serverPath = path
 	} else if path := s.checkZipArchive(); path != "" {
 		// Scenario 2.2: Check if there's a zip archive with server
-		log.Printf("BDS: Found server zip archive, extracting...")
+		logger.Printf("Found server zip archive, extracting...")
 		if err := s.extractServer(); err != nil {
 			return "", fmt.Errorf("failed to extract server: %w", err)
 		}
 		// Return the path to the extracted server executable
 		extractedPath := filepath.Join("server", serverExecutable)
-		log.Printf("BDS: Server extracted to: %s", extractedPath)
+		logger.Printf("Server extracted to: %s", extractedPath)
 		serverPath = extractedPath
 	} else {
 		// Scenario 2.3: Nothing in current directory - download and setup
-		log.Println("BDS: No server found, downloading minecraft server...")
+		logger.Println("No server found, downloading minecraft server...")
 		if err := s.downloadAndSetup(); err != nil {
 			return "", fmt.Errorf("failed to download and setup server: %w", err)
 		}
 
 		// Return the path to the downloaded and extracted server executable
 		downloadedPath := filepath.Join("server", serverExecutable)
-		log.Printf("BDS: Server downloaded and extracted to: %s", downloadedPath)
+		logger.Printf("Server downloaded and extracted to: %s", downloadedPath)
 		serverPath = downloadedPath
 	}
 
 	// Always ensure mcpack is installed on server startup
-	log.Println("BDS: Ensuring x_ender_chest mcpack is installed...")
+	logger.Println("Ensuring x_ender_chest mcpack is installed...")
 	mcpackInstaller := NewMcpackInstaller()
 	if err := mcpackInstaller.EnsureMcpackInstalled(); err != nil {
-		log.Printf("BDS: Warning - failed to install mcpack: %v", err)
+		logger.Printf("Warning - failed to install mcpack: %v", err)
 		// Don't fail server startup if mcpack installation fails
 	}
 
@@ -140,13 +141,13 @@ func (s *Setup) downloadAndSetup() error {
 		return fmt.Errorf("failed to extract server: %w", err)
 	}
 
-	log.Println("BDS: Server download and setup complete")
+	logger.Println("Server download and setup complete")
 	return nil
 }
 
 // downloadServerZip downloads the bedrock server zip from the official URL
 func (s *Setup) downloadServerZip() error {
-	log.Printf("BDS: Downloading server from %s...", serverDownloadURL)
+	logger.Printf("Downloading server from %s...", serverDownloadURL)
 
 	// Create HTTP request
 	resp, err := http.Get(serverDownloadURL)
@@ -172,13 +173,13 @@ func (s *Setup) downloadServerZip() error {
 		return fmt.Errorf("failed to save downloaded file: %w", err)
 	}
 
-	log.Println("BDS: Server download complete")
+	logger.Println("Server download complete")
 	return nil
 }
 
 // extractServer extracts the bedrock server zip to the server directory
 func (s *Setup) extractServer() error {
-	log.Println("BDS: Extracting server...")
+	logger.Println("Extracting server...")
 
 	// Find the zip file to extract
 	zipFile := s.checkZipArchive()
@@ -229,7 +230,7 @@ func (s *Setup) extractServer() error {
 		}
 	}
 
-	log.Println("BDS: Server extraction complete")
+	logger.Println("Server extraction complete")
 	return nil
 }
 

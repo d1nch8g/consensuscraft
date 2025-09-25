@@ -3,11 +3,12 @@ package bds
 import (
 	"bufio"
 	"io"
-	"log"
 	"os"
 	"os/exec"
 	"regexp"
 	"strings"
+
+	"github.com/d1nch8g/consensuscraft/logger"
 )
 
 // LogMonitor handles server log monitoring and parsing
@@ -35,8 +36,8 @@ func (lm *LogMonitor) Start(serverProcess *exec.Cmd, bds *Bds, params Parameters
 	// we can't intercept the logs for parsing player events.
 	// This is a trade-off for requirement #5 (pipe to process stdin/stdout/stderr)
 
-	log.Println("BDS: Log monitoring started with direct I/O piping")
-	log.Println("BDS: Note - Player events cannot be parsed with direct I/O piping")
+	logger.Println("Log monitoring started with direct I/O piping")
+	logger.Println("Note - Player events cannot be parsed with direct I/O piping")
 }
 
 // StartWithPipes starts monitoring server logs with separate pipes for parsing
@@ -45,7 +46,7 @@ func (lm *LogMonitor) StartWithPipes(stdout, stderr io.ReadCloser, stdin io.Writ
 	go lm.monitorServerLogs(stdout, bds, params, stdin)
 	go lm.monitorServerLogs(stderr, bds, params, stdin)
 
-	log.Println("BDS: Log monitoring started with separate pipes")
+	logger.Println("Log monitoring started with separate pipes")
 }
 
 // monitorServerLogs monitors server output and processes events
@@ -60,28 +61,28 @@ func (lm *LogMonitor) monitorServerLogs(reader io.Reader, bds *Bds, params Param
 		// Parse player connected events
 		if matches := lm.playerConnectedRegex.FindStringSubmatch(line); len(matches) > 1 {
 			playerName := strings.TrimSpace(matches[1])
-			log.Printf("BDS: Player connected: %s", playerName)
+			logger.Printf("Player connected: %s", playerName)
 
 			select {
 			case bds.PlayerLogin <- playerName:
 			default:
-				log.Printf("BDS: PlayerLogin channel full, dropping event for %s", playerName)
+				logger.Printf("PlayerLogin channel full, dropping event for %s", playerName)
 			}
 		}
 
 		// Parse player spawned events - trigger inventory restoration
 		if matches := lm.playerSpawnedRegex.FindStringSubmatch(line); len(matches) > 1 {
 			playerName := strings.TrimSpace(matches[1])
-			log.Printf("BDS: Player spawned: %s", playerName)
+			logger.Printf("Player spawned: %s", playerName)
 
 			// Get inventory data from callback and restore it via tags
 			go func(name string) {
 				if inventoryData, err := params.InventoryReceiveCallback(name); err == nil {
 					if err := bds.inventory.RestorePlayerInventory(name, inventoryData, stdin); err != nil {
-						log.Printf("BDS: Failed to restore inventory for %s: %v", name, err)
+						logger.Printf("Failed to restore inventory for %s: %v", name, err)
 					}
 				} else {
-					log.Printf("BDS: Failed to get inventory data for %s: %v", name, err)
+					logger.Printf("Failed to get inventory data for %s: %v", name, err)
 				}
 			}(playerName)
 		}
@@ -89,12 +90,12 @@ func (lm *LogMonitor) monitorServerLogs(reader io.Reader, bds *Bds, params Param
 		// Parse player disconnected events
 		if matches := lm.playerDisconnectedRegex.FindStringSubmatch(line); len(matches) > 1 {
 			playerName := strings.TrimSpace(matches[1])
-			log.Printf("BDS: Player disconnected: %s", playerName)
+			logger.Printf("Player disconnected: %s", playerName)
 
 			select {
 			case bds.PlayerLogout <- playerName:
 			default:
-				log.Printf("BDS: PlayerLogout channel full, dropping event for %s", playerName)
+				logger.Printf("PlayerLogout channel full, dropping event for %s", playerName)
 			}
 		}
 
@@ -103,7 +104,7 @@ func (lm *LogMonitor) monitorServerLogs(reader io.Reader, bds *Bds, params Param
 			playerName := strings.TrimSpace(matches[1])
 			inventoryData := matches[2]
 
-			log.Printf("BDS: Inventory update for %s", playerName)
+			logger.Printf("Inventory update for %s", playerName)
 
 			// The inventory data is already a valid JSON array from JavaScript
 			// Don't wrap it in additional brackets
@@ -117,12 +118,12 @@ func (lm *LogMonitor) monitorServerLogs(reader io.Reader, bds *Bds, params Param
 				Inventory:  []byte(jsonInventoryData),
 			}:
 			default:
-				log.Printf("BDS: InventoryUpdate channel full, dropping event for %s", playerName)
+				logger.Printf("InventoryUpdate channel full, dropping event for %s", playerName)
 			}
 		}
 	}
 
 	if err := scanner.Err(); err != nil {
-		log.Printf("BDS: Error reading server logs: %v", err)
+		logger.Printf("Error reading server logs: %v", err)
 	}
 }

@@ -3,10 +3,11 @@ package bds
 import (
 	"bufio"
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/d1nch8g/consensuscraft/logger"
 )
 
 // Config holds the BDS configuration loaded from .env file
@@ -52,8 +53,8 @@ func LoadConfig() (*Config, error) {
 
 	// Load from .env file if it exists
 	if err := config.loadFromEnv(); err != nil {
-		log.Printf("BDS: Warning - failed to load .env file: %v", err)
-		log.Println("BDS: Using default configuration")
+		logger.Printf("Warning - failed to load .env file: %v", err)
+		logger.Println("Using default configuration")
 	}
 
 	return config, nil
@@ -92,7 +93,7 @@ func (c *Config) loadFromEnv() error {
 		}
 
 		if err := c.setConfigValue(key, value); err != nil {
-			log.Printf("BDS: Warning - invalid config value %s=%s: %v", key, value, err)
+			logger.Printf("Warning - invalid config value %s=%s: %v", key, value, err)
 		}
 	}
 
@@ -191,7 +192,7 @@ GAMEMODE=survival
 		return fmt.Errorf("failed to write default .env content: %w", err)
 	}
 
-	log.Println("BDS: Created default .env configuration file")
+	logger.Println("Created default .env configuration file")
 	return nil
 }
 

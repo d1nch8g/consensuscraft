@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
+	"github.com/d1nch8g/consensuscraft/logger"
 	"os"
 	"path/filepath"
 	"strings"
@@ -101,10 +101,10 @@ func (mi *McpackInstaller) getPackUUIDs() error {
 
 			if file.Name == "behavior_pack/manifest.json" {
 				mi.behaviorPackUUID = manifest.Header.UUID
-				log.Printf("BDS: Found behavior pack UUID: %s", mi.behaviorPackUUID)
+				logger.Printf("Found behavior pack UUID: %s", mi.behaviorPackUUID)
 			} else if file.Name == "resource_pack/manifest.json" {
 				mi.resourcePackUUID = manifest.Header.UUID
-				log.Printf("BDS: Found resource pack UUID: %s", mi.resourcePackUUID)
+				logger.Printf("Found resource pack UUID: %s", mi.resourcePackUUID)
 			}
 		}
 	}
@@ -121,7 +121,7 @@ func (mi *McpackInstaller) getPackUUIDs() error {
 
 // InstallMcpack installs the embedded mcpack to the server
 func (mi *McpackInstaller) InstallMcpack() error {
-	log.Println("BDS: Installing x_ender_chest mcpack...")
+	logger.Println("Installing x_ender_chest mcpack...")
 
 	// Get the embedded mcpack data
 	mcpackData, err := xendchest.Asset("x_ender_chest.mcpack")
@@ -139,7 +139,7 @@ func (mi *McpackInstaller) InstallMcpack() error {
 
 // ExtractAndActivateMcpack extracts the mcpack and activates it in worlds
 func (mi *McpackInstaller) ExtractAndActivateMcpack(mcpackData []byte) error {
-	log.Println("BDS: Extracting and activating mcpack...")
+	logger.Println("Extracting and activating mcpack...")
 
 	// Create temporary file for extraction
 	tempFile, err := os.CreateTemp("", "x_ender_chest_*.mcpack")
@@ -170,7 +170,7 @@ func (mi *McpackInstaller) ExtractAndActivateMcpack(mcpackData []byte) error {
 
 // extractMcpack extracts the mcpack file to appropriate directories
 func (mi *McpackInstaller) extractMcpack(mcpackPath string) error {
-	log.Println("BDS: Extracting mcpack contents...")
+	logger.Println("Extracting mcpack contents...")
 
 	// Open the mcpack file (it's a zip file)
 	reader, err := zip.OpenReader(mcpackPath)
@@ -228,7 +228,7 @@ func (mi *McpackInstaller) extractMcpack(mcpackPath string) error {
 		}
 	}
 
-	log.Printf("BDS: Successfully extracted mcpack contents to behavior_packs and resource_packs")
+	logger.Printf("Successfully extracted mcpack contents to behavior_packs and resource_packs")
 	return nil
 }
 
@@ -252,12 +252,12 @@ func (mi *McpackInstaller) extractFile(file *zip.File, destPath string) error {
 
 // activateInWorlds activates the mcpack in all existing worlds
 func (mi *McpackInstaller) activateInWorlds() error {
-	log.Println("BDS: Activating mcpack in worlds...")
+	logger.Println("Activating mcpack in worlds...")
 
 	// Check if worlds directory exists
 	worldsDir := "worlds"
 	if _, err := os.Stat(worldsDir); os.IsNotExist(err) {
-		log.Println("BDS: No worlds directory found, creating default world configuration...")
+		logger.Println("No worlds directory found, creating default world configuration...")
 		// Create worlds directory and default world
 		if err := os.MkdirAll(filepath.Join(worldsDir, "Bedrock level"), 0755); err != nil {
 			return fmt.Errorf("failed to create default world directory: %w", err)
@@ -277,7 +277,7 @@ func (mi *McpackInstaller) activateInWorlds() error {
 		if world.IsDir() {
 			worldPath := filepath.Join(worldsDir, world.Name())
 			if err := mi.activateInWorld(worldPath); err != nil {
-				log.Printf("BDS: Warning - failed to activate mcpack in world %s: %v", world.Name(), err)
+				logger.Printf("Warning - failed to activate mcpack in world %s: %v", world.Name(), err)
 				// Continue with other worlds
 			}
 		}
@@ -306,7 +306,7 @@ func (mi *McpackInstaller) activateInWorld(worldPath string) error {
 		return fmt.Errorf("failed to add resource pack to world config: %w", err)
 	}
 
-	log.Printf("BDS: Activated mcpack in world: %s", filepath.Base(worldPath))
+	logger.Printf("Activated mcpack in world: %s", filepath.Base(worldPath))
 	return nil
 }
 
@@ -317,7 +317,7 @@ func (mi *McpackInstaller) addPackToWorldConfig(configFile string, packUUID stri
 	// Read existing configuration if it exists
 	if data, err := os.ReadFile(configFile); err == nil {
 		if err := json.Unmarshal(data, &packs); err != nil {
-			log.Printf("BDS: Warning - failed to parse existing %s: %v", configFile, err)
+			logger.Printf("Warning - failed to parse existing %s: %v", configFile, err)
 			// Continue with empty packs slice
 			packs = []PackEntry{}
 		}
@@ -326,7 +326,7 @@ func (mi *McpackInstaller) addPackToWorldConfig(configFile string, packUUID stri
 	// Check if our pack is already in the configuration
 	for _, pack := range packs {
 		if pack.PackID == packUUID {
-			log.Printf("BDS: Pack %s already exists in %s", packUUID, filepath.Base(configFile))
+			logger.Printf("Pack %s already exists in %s", packUUID, filepath.Base(configFile))
 			return nil
 		}
 	}
@@ -348,7 +348,7 @@ func (mi *McpackInstaller) addPackToWorldConfig(configFile string, packUUID stri
 		return fmt.Errorf("failed to write pack configuration: %w", err)
 	}
 
-	log.Printf("BDS: Added pack %s to %s", packUUID, filepath.Base(configFile))
+	logger.Printf("Added pack %s to %s", packUUID, filepath.Base(configFile))
 	return nil
 }
 
@@ -375,7 +375,7 @@ func (mi *McpackInstaller) EnsureMcpackInstalled() error {
 			var manifest Manifest
 			if err := json.Unmarshal(data, &manifest); err == nil {
 				if manifest.Header.UUID != mi.behaviorPackUUID {
-					log.Printf("BDS: Behavior pack UUID mismatch - installed: %s, current: %s", manifest.Header.UUID, mi.behaviorPackUUID)
+					logger.Printf("Behavior pack UUID mismatch - installed: %s, current: %s", manifest.Header.UUID, mi.behaviorPackUUID)
 					needsReinstall = true
 				}
 			} else {
@@ -395,7 +395,7 @@ func (mi *McpackInstaller) EnsureMcpackInstalled() error {
 			var manifest Manifest
 			if err := json.Unmarshal(data, &manifest); err == nil {
 				if manifest.Header.UUID != mi.resourcePackUUID {
-					log.Printf("BDS: Resource pack UUID mismatch - installed: %s, current: %s", manifest.Header.UUID, mi.resourcePackUUID)
+					logger.Printf("Resource pack UUID mismatch - installed: %s, current: %s", manifest.Header.UUID, mi.resourcePackUUID)
 					needsReinstall = true
 				}
 			} else {
@@ -409,7 +409,7 @@ func (mi *McpackInstaller) EnsureMcpackInstalled() error {
 	}
 
 	if needsReinstall {
-		log.Println("BDS: Pack UUIDs don't match or packs missing - reinstalling...")
+		logger.Println("Pack UUIDs don't match or packs missing - reinstalling...")
 		// Clean up old pack directories
 		os.RemoveAll(behaviorDir)
 		os.RemoveAll(resourceDir)
@@ -417,7 +417,7 @@ func (mi *McpackInstaller) EnsureMcpackInstalled() error {
 		return mi.InstallMcpack()
 	}
 
-	log.Println("BDS: x_ender_chest mcpack already installed with correct UUIDs")
+	logger.Println("x_ender_chest mcpack already installed with correct UUIDs")
 	// Still try to activate in any new worlds
 	return mi.activateInWorlds()
 }
