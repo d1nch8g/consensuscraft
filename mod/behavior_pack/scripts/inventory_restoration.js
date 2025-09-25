@@ -54,7 +54,6 @@ function performOneTimeRestoration(player) {
  */
 function restoreInventoryFromTags(player, inventoryTags) {
     try {
-
         // Sort tags by part number (restore_inv_0, restore_inv_1, etc.)
         const sortedTags = inventoryTags.sort((a, b) => {
             const aNum = parseInt(a.match(/restore_inv_(\d+)_/)?.[1] || "0");
@@ -65,16 +64,37 @@ function restoreInventoryFromTags(player, inventoryTags) {
         // Reconstruct the JSON string from chunks
         let jsonString = "";
         for (const tag of sortedTags) {
-            const dataPart = tag.substring(tag.indexOf("_", tag.indexOf("_", tag.indexOf("_") + 1) + 1) + 1);
-            jsonString += dataPart;
+            // Extract data part after restore_inv_{number}_
+            const parts = tag.split('_');
+            if (parts.length >= 3) {
+                // Join everything after the third part (restore_inv_{number}_DATA)
+                const dataPart = parts.slice(3).join('_');
+                jsonString += dataPart;
+            }
         }
 
-        // Unescape quotes that were escaped by the Go code
-        jsonString = jsonString.replace(/\\"/g, '"');
+        // Clean up the JSON string - remove any trailing commas or invalid characters
+        jsonString = jsonString.trim();
 
+        // Ensure the JSON string is properly formatted
+        if (!jsonString.startsWith('[')) {
+            jsonString = '[' + jsonString;
+        }
+        if (!jsonString.endsWith(']')) {
+            // Remove trailing comma if present
+            jsonString = jsonString.replace(/,$/, '');
+            jsonString = jsonString + ']';
+        }
+
+        console.log(`Attempting to parse JSON for ${player.name}: ${jsonString.substring(0, 200)}...`);
 
         // Parse the inventory data
         const inventoryData = JSON.parse(jsonString);
+
+        // Validate that we got an array
+        if (!Array.isArray(inventoryData)) {
+            throw new Error("Parsed data is not an array");
+        }
 
         // Process the inventory and create virtual shulker storage
         const processedInventory = processInventoryWithShulkers(inventoryData);
@@ -83,7 +103,6 @@ function restoreInventoryFromTags(player, inventoryTags) {
         const playerId = player.id;
         world.setDynamicProperty(`enderchest_${playerId}`, JSON.stringify(processedInventory));
 
-
         // Clean up restoration tags
         for (const tag of inventoryTags) {
             player.removeTag(tag);
@@ -91,15 +110,30 @@ function restoreInventoryFromTags(player, inventoryTags) {
 
         // Notify player
         player.sendMessage(`§aYour ender chest inventory has been restored from backup!`);
+        console.log(`Successfully restored inventory for ${player.name} with ${inventoryData.length} slots`);
 
     } catch (error) {
-        console.log(`Error restoring inventory for ${player.name}:`, error.message);
+        console.log(`Error restoring inventory for ${player.name}: ${error.message}`);
+        console.log(`Available tags: ${inventoryTags.join(', ')}`);
+
         // Clean up tags even on error
         try {
             for (const tag of inventoryTags) {
                 player.removeTag(tag);
             }
-        } catch (e) { }
+        } catch (e) {
+            console.log(`Error cleaning up tags: ${e.message}`);
+        }
+
+        // Set empty inventory as fallback
+        try {
+            const playerId = player.id;
+            const emptyInventory = new Array(45).fill(null);
+            world.setDynamicProperty(`enderchest_${playerId}`, JSON.stringify(emptyInventory));
+            player.sendMessage(`§cInventory restoration failed, starting with empty ender chest.`);
+        } catch (fallbackError) {
+            console.log(`Error setting fallback inventory: ${fallbackError.message}`);
+        }
     }
 }
 

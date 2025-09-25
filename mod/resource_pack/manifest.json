@@ -1,24 +1,42 @@
 {
   "format_version": 2,
   "metadata": {
-    "authors": ["d1nch8g"],
+    "authors": [
+      "d1nch8g"
+    ],
     "generated_with": {
-      "bridge": ["2.7.34"],
-      "dash": ["0.11.7"]
+      "bridge": [
+        "2.7.34"
+      ],
+      "dash": [
+        "0.11.7"
+      ]
     }
   },
   "header": {
     "name": "X Ender Chest",
     "description": "Programmable ender chest, replacing vanilla one!",
-    "min_engine_version": [1, 21, 30],
-    "uuid": "bbd6ddbc-da30-4ee7-9a90-b830d82181ce",
-    "version": [1, 0, 0]
+    "min_engine_version": [
+      1,
+      21,
+      30
+    ],
+    "uuid": "3a33ca5a-8520-4a82-b112-8a73e9ab30c7",
+    "version": [
+      1,
+      0,
+      0
+    ]
   },
   "modules": [
     {
       "type": "resources",
-      "uuid": "fe2eb746-6c03-497e-938e-68473f619f70",
-      "version": [1, 0, 0]
+      "uuid": "cef63d04-acb7-4f9c-a4ef-07c969b6327e",
+      "version": [
+        1,
+        0,
+        0
+      ]
     }
   ]
 }

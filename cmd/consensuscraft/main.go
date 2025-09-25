@@ -31,6 +31,7 @@ func main() {
 			return inventories.Put(playerName, inventory, cfg.WebAddress)
 		},
 		StartTrigger: runBDS,
+		WebAddress:   cfg.WebAddress,
 	})
 	if err != nil {
 		logrus.Fatalf("unable to launch bedrock dedicated server: %v", err)

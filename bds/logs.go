@@ -105,8 +105,9 @@ func (lm *LogMonitor) monitorServerLogs(reader io.Reader, bds *Bds, params Param
 
 			log.Printf("BDS: Inventory update for %s", playerName)
 
-			// Wrap the inventory data in JSON array brackets to make it valid JSON
-			jsonInventoryData := "[" + inventoryData + "]"
+			// The inventory data is already a valid JSON array from JavaScript
+			// Don't wrap it in additional brackets
+			jsonInventoryData := inventoryData
 
 			bds.inventory.UpdatePlayerInventory(playerName, []byte(jsonInventoryData))
 

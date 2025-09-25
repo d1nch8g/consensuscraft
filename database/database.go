@@ -5,7 +5,9 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -44,6 +46,180 @@ type DB struct {
 var ErrClosed = errors.New("database is closed")
 var ErrPlayerNotFound = errors.New("player not found")
 
+// Item represents a Minecraft item in the inventory
+type Item struct {
+	TypeID         string                 `json:"typeId,omitempty"`
+	Amount         int                    `json:"amount,omitempty"`
+	NameTag        string                 `json:"nameTag,omitempty"`
+	Lore           []string               `json:"lore,omitempty"`
+	Enchantments   []map[string]any       `json:"enchantments,omitempty"`
+	Durability     map[string]any         `json:"durability,omitempty"`
+	ShulkerContents []any                 `json:"shulker_contents,omitempty"`
+	// Store any other fields as raw JSON
+	Extra          map[string]any         `json:"-"`
+}
+
+// UnmarshalJSON implements custom unmarshaling for Item
+func (i *Item) UnmarshalJSON(data []byte) error {
+	// First unmarshal into a map to capture all fields
+	var raw map[string]any
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+
+	// Extract known fields
+	if v, ok := raw["typeId"].(string); ok {
+		i.TypeID = v
+		delete(raw, "typeId")
+	}
+	if v, ok := raw["amount"].(float64); ok {
+		i.Amount = int(v)
+		delete(raw, "amount")
+	}
+	if v, ok := raw["nameTag"].(string); ok {
+		i.NameTag = v
+		delete(raw, "nameTag")
+	}
+	if v, ok := raw["lore"].([]any); ok {
+		i.Lore = make([]string, len(v))
+		for idx, loreItem := range v {
+			if s, ok := loreItem.(string); ok {
+				i.Lore[idx] = s
+			}
+		}
+		delete(raw, "lore")
+	}
+	if v, ok := raw["enchantments"].([]any); ok {
+		i.Enchantments = make([]map[string]any, len(v))
+		for idx, enchItem := range v {
+			if m, ok := enchItem.(map[string]any); ok {
+				i.Enchantments[idx] = m
+			}
+		}
+		delete(raw, "enchantments")
+	}
+	if v, ok := raw["durability"].(map[string]any); ok {
+		i.Durability = v
+		delete(raw, "durability")
+	}
+	if v, ok := raw["shulker_contents"].([]any); ok {
+		i.ShulkerContents = v
+		delete(raw, "shulker_contents")
+	}
+
+	// Store remaining fields in Extra
+	if len(raw) > 0 {
+		i.Extra = raw
+	}
+
+	return nil
+}
+
+// MarshalJSON implements custom marshaling for Item
+func (i *Item) MarshalJSON() ([]byte, error) {
+	// Create a map with all fields
+	result := make(map[string]any)
+
+	// Add extra fields first
+	for k, v := range i.Extra {
+		result[k] = v
+	}
+
+	// Add known fields (these will override any conflicting extra fields)
+	if i.TypeID != "" {
+		result["typeId"] = i.TypeID
+	}
+	if i.Amount != 0 {
+		result["amount"] = i.Amount
+	}
+	if i.NameTag != "" {
+		result["nameTag"] = i.NameTag
+	}
+	if len(i.Lore) > 0 {
+		result["lore"] = i.Lore
+	}
+	if len(i.Enchantments) > 0 {
+		result["enchantments"] = i.Enchantments
+	}
+	if len(i.Durability) > 0 {
+		result["durability"] = i.Durability
+	}
+	if len(i.ShulkerContents) > 0 {
+		result["shulker_contents"] = i.ShulkerContents
+	}
+
+	return json.Marshal(result)
+}
+
+// hasOriginFromServer checks if an item originates from a specific server
+func (i *Item) hasOriginFromServer(server string) bool {
+	if len(i.Lore) == 0 {
+		return false
+	}
+
+	// Check for origin lore pattern: "Origin: server timestamp"
+	originPattern := regexp.MustCompile(`^Origin:\s*(.+?)\s+\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}`)
+	for _, lore := range i.Lore {
+		if matches := originPattern.FindStringSubmatch(lore); len(matches) > 1 {
+			originServer := strings.TrimSpace(matches[1])
+			if originServer == server {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// cleanShulkerContents removes items from shulker contents that originate from a specific server
+func (i *Item) cleanShulkerContents(server string) bool {
+	if len(i.ShulkerContents) == 0 {
+		return false
+	}
+
+	var cleaned []any
+	modified := false
+
+	for _, content := range i.ShulkerContents {
+		if content == nil {
+			cleaned = append(cleaned, nil)
+			continue
+		}
+
+		// Try to parse as Item
+		contentBytes, err := json.Marshal(content)
+		if err != nil {
+			cleaned = append(cleaned, content)
+			continue
+		}
+
+		var item Item
+		if err := json.Unmarshal(contentBytes, &item); err != nil {
+			cleaned = append(cleaned, content)
+			continue
+		}
+
+		// Check if this item should be removed
+		if item.hasOriginFromServer(server) {
+			// Remove this item (don't add to cleaned)
+			modified = true
+			continue
+		}
+
+		// Recursively clean nested shulker contents
+		if item.cleanShulkerContents(server) {
+			modified = true
+		}
+
+		cleaned = append(cleaned, item)
+	}
+
+	if modified {
+		i.ShulkerContents = cleaned
+	}
+
+	return modified
+}
+
 func New(path string) (*DB, error) {
 	err := os.RemoveAll(filepath.Join(path, "LOCK"))
 	if err != nil {
@@ -80,12 +256,12 @@ func (db *DB) Put(player string, inventory []byte, server string) error {
 	// Get existing inventories for player
 	var playerInv PlayerInventories
 	key := []byte(player)
-	
+
 	existingData, err := db.leveldb.Get(key, nil)
 	if err != nil && err != leveldb.ErrNotFound {
 		return err
 	}
-	
+
 	if err == nil {
 		// Player exists, unmarshal existing data
 		if err := json.Unmarshal(existingData, &playerInv); err != nil {
@@ -146,9 +322,19 @@ func (db *DB) Get(player string) ([]byte, error) {
 		return nil, err
 	}
 
+	// Try to unmarshal as PlayerInventories (new format)
 	var playerInv PlayerInventories
 	if err := json.Unmarshal(data, &playerInv); err != nil {
-		return nil, err
+		// If that fails, check if it's old format (raw JSON array)
+		// Try to unmarshal as raw array to validate it's valid JSON
+		var rawArray []any
+		if arrayErr := json.Unmarshal(data, &rawArray); arrayErr != nil {
+			// Neither format worked, return the original error
+			return nil, err
+		}
+
+		// It's old format, return the raw data directly
+		return data, nil
 	}
 
 	if len(playerInv.Entries) == 0 {
@@ -159,7 +345,8 @@ func (db *DB) Get(player string) ([]byte, error) {
 	return playerInv.Entries[0].Inventory, nil
 }
 
-// Delete removes all inventory entries from a specific server for all players
+// Delete removes all items originating from a specific server from all player inventories
+// This includes items in shulker boxes and nested containers
 // If force is true, it also removes all entries that came after the server's entries
 func (db *DB) Delete(server string, force bool) error {
 	db.mu.Lock()
@@ -182,10 +369,10 @@ func (db *DB) Delete(server string, force bool) error {
 			continue // Skip corrupted entries
 		}
 
-		originalCount := len(playerInv.Entries)
 		var newEntries []InventoryEntry
 		var serverTimestamp time.Time
-		
+		modified := false
+
 		// Find the latest timestamp from the server to be deleted
 		for _, entry := range playerInv.Entries {
 			if entry.Server == server {
@@ -195,23 +382,32 @@ func (db *DB) Delete(server string, force bool) error {
 			}
 		}
 
-		// Filter entries
+		// Process each entry
 		for _, entry := range playerInv.Entries {
 			if entry.Server == server {
 				// Remove all entries from this server
+				modified = true
 				continue
 			}
-			
+
 			if force && !serverTimestamp.IsZero() && entry.Timestamp.After(serverTimestamp) {
 				// Remove entries that came after the server's latest entry
+				modified = true
 				continue
 			}
-			
-			newEntries = append(newEntries, entry)
+
+			// Parse and clean the inventory contents
+			cleanedEntry := entry
+			if cleanedInventory, inventoryModified := db.cleanInventoryContents(entry.Inventory, server); inventoryModified {
+				cleanedEntry.Inventory = cleanedInventory
+				modified = true
+			}
+
+			newEntries = append(newEntries, cleanedEntry)
 		}
 
 		// Only update if something changed
-		if len(newEntries) != originalCount {
+		if modified {
 			if len(newEntries) == 0 {
 				// No entries left, delete the player entirely
 				err := db.leveldb.Delete(iter.Key(), nil)
@@ -221,7 +417,7 @@ func (db *DB) Delete(server string, force bool) error {
 			} else {
 				// Update with filtered entries
 				playerInv.Entries = newEntries
-				
+
 				// Sort entries by timestamp (newest first)
 				sort.Slice(playerInv.Entries, func(i, j int) bool {
 					return playerInv.Entries[i].Timestamp.After(playerInv.Entries[j].Timestamp)
@@ -258,6 +454,67 @@ func (db *DB) Delete(server string, force bool) error {
 	}
 
 	return nil
+}
+
+// cleanInventoryContents removes items originating from a specific server from an inventory
+func (db *DB) cleanInventoryContents(inventoryData []byte, server string) ([]byte, bool) {
+	// Try to parse as inventory array
+	var inventory []any
+	if err := json.Unmarshal(inventoryData, &inventory); err != nil {
+		// If parsing fails, return original data unchanged
+		return inventoryData, false
+	}
+
+	var cleanedInventory []any
+	modified := false
+
+	for _, slot := range inventory {
+		if slot == nil {
+			cleanedInventory = append(cleanedInventory, nil)
+			continue
+		}
+
+		// Try to parse as Item
+		slotBytes, err := json.Marshal(slot)
+		if err != nil {
+			cleanedInventory = append(cleanedInventory, slot)
+			continue
+		}
+
+		var item Item
+		if err := json.Unmarshal(slotBytes, &item); err != nil {
+			cleanedInventory = append(cleanedInventory, slot)
+			continue
+		}
+
+		// Check if this item should be removed
+		if item.hasOriginFromServer(server) {
+			// Remove this item (replace with null)
+			cleanedInventory = append(cleanedInventory, nil)
+			modified = true
+			continue
+		}
+
+		// Clean shulker contents recursively
+		if item.cleanShulkerContents(server) {
+			modified = true
+		}
+
+		cleanedInventory = append(cleanedInventory, item)
+	}
+
+	if !modified {
+		return inventoryData, false
+	}
+
+	// Marshal the cleaned inventory
+	cleanedData, err := json.Marshal(cleanedInventory)
+	if err != nil {
+		// If marshaling fails, return original data
+		return inventoryData, false
+	}
+
+	return cleanedData, true
 }
 
 // GetPlayerInventories returns all inventory entries for a player

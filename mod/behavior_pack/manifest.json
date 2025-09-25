@@ -1,31 +1,53 @@
 {
   "format_version": 2,
   "metadata": {
-    "authors": ["d1nch8g"],
+    "authors": [
+      "d1nch8g"
+    ],
     "generated_with": {
-      "bridge": ["2.7.34"],
-      "dash": ["0.11.7"]
+      "bridge": [
+        "2.7.34"
+      ],
+      "dash": [
+        "0.11.7"
+      ]
     }
   },
   "header": {
     "name": "X Ender Chest",
     "description": "Programmable ender chest, replacing vanilla one!",
-    "min_engine_version": [1, 21, 102],
-    "uuid": "4b164dc6-539d-42b9-967e-54f99580d0fd",
-    "version": [1, 0, 0]
+    "min_engine_version": [
+      1,
+      21,
+      102
+    ],
+    "uuid": "c53a8a2b-7e3a-4d8c-8f2c-4b1f846fbfb8",
+    "version": [
+      1,
+      0,
+      0
+    ]
   },
   "modules": [
     {
       "type": "data",
-      "uuid": "e3a13fbc-5fd5-4129-922e-cda4b77c3d10",
-      "version": [1, 0, 0]
+      "uuid": "0521cad2-154b-4c6a-9ff6-d525dbd98621",
+      "version": [
+        1,
+        0,
+        0
+      ]
     },
     {
       "type": "script",
+      "uuid": "22a88de5-c24e-449e-ad1b-4c67eb44f6e5",
+      "version": [
+        1,
+        0,
+        0
+      ],
       "language": "javascript",
-      "uuid": "17fb7ec9-cd43-4d1c-a544-6ecfd04deb71",
-      "entry": "scripts/main.js",
-      "version": [1, 0, 0]
+      "entry": "scripts/main.js"
     }
   ],
   "dependencies": [

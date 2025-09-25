@@ -6,6 +6,79 @@ const chests = ["x_ender_chest"];
 // Per-player ender chest storage
 const enderChestStorage = new Map();
 
+// Get server name from scoreboard or fallback to dynamic property/default
+function getServerName() {
+    try {
+        // First try to get server name from scoreboard
+        const obj = world.scoreboard.getObjective("serverName");
+        if (obj) {
+            for (const part of obj.getParticipants()) {
+                const serverName = part.displayName;
+                if (serverName && serverName !== "unknown-server") {
+                    console.log(`Using server name from scoreboard: ${serverName}`);
+                    return serverName;
+                }
+            }
+        }
+        
+        // Fallback to world dynamic property
+        const serverName = world.getDynamicProperty("server_name");
+        if (serverName) {
+            console.log(`Using server name from dynamic property: ${serverName}`);
+            return serverName;
+        }
+        
+        // Final fallback - default server name with timestamp
+        const defaultName = `server-${Date.now()}`;
+        world.setDynamicProperty("server_name", defaultName);
+        console.log(`Using default server name: ${defaultName}`);
+        return defaultName;
+    } catch (error) {
+        console.log(`Error getting server name: ${error.message}, using fallback`);
+        return `server-${Date.now()}`;
+    }
+}
+
+// Check if item has origin lore
+function hasOriginLore(item) {
+    if (!item) return false;
+    try {
+        const lore = item.getLore();
+        if (!lore) return false;
+        return lore.some(line => line.startsWith("Origin: "));
+    } catch (error) {
+        return false;
+    }
+}
+
+// Add origin lore to item if it doesn't have one
+function addOriginLore(item, serverName) {
+    if (!item || hasOriginLore(item)) return false;
+    
+    try {
+        const lore = item.getLore() || [];
+        const originLine = `Origin: ${serverName}`;
+        lore.push(originLine);
+        item.setLore(lore);
+        return true;
+    } catch (error) {
+        return false;
+    }
+}
+
+// Add origin lore to all items in an array that don't have it
+function addOriginToItems(items, serverName) {
+    if (!items || !Array.isArray(items)) return false;
+    
+    let modified = false;
+    for (const item of items) {
+        if (item && addOriginLore(item, serverName)) {
+            modified = true;
+        }
+    }
+    return modified;
+}
+
 // Save player data to world dynamic properties
 function savePlayerData(playerId, items) {
     try {
@@ -190,10 +263,21 @@ function loadPlayerItemsToChest(chest, playerItems) {
 // Save items from chest entity to storage array
 function savePlayerItemsFromChest(chest, playerItems, playerId) {
     const container = chest.getComponent("inventory").container;
+    const serverName = getServerName();
+    
     for (let i = 0; i < 45; i++) {
         const item = container.getItem(i);
+        if (item) {
+            // Add origin lore to items that don't have it
+            const wasModified = addOriginLore(item, serverName);
+            if (wasModified) {
+                // Put the modified item back into the container
+                container.setItem(i, item);
+            }
+        }
         playerItems[i] = item || null;
     }
+    
     // Persist to world storage
     savePlayerData(playerId, playerItems);
 

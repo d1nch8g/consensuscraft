@@ -21,6 +21,62 @@ const SHULKER_BOX_TYPES = [
     "minecraft:black_shulker_box",
 ];
 
+// Get server name from scoreboard or fallback to dynamic property/default
+function getServerName() {
+    try {
+        // First try to get server name from scoreboard
+        const obj = world.scoreboard.getObjective("serverName");
+        if (obj) {
+            for (const part of obj.getParticipants()) {
+                const serverName = part.displayName;
+                if (serverName && serverName !== "unknown-server") {
+                    return serverName;
+                }
+            }
+        }
+        
+        // Fallback to world dynamic property
+        const serverName = world.getDynamicProperty("server_name");
+        if (serverName) {
+            return serverName;
+        }
+        
+        // Final fallback - default server name with timestamp
+        const defaultName = `server-${Date.now()}`;
+        world.setDynamicProperty("server_name", defaultName);
+        return defaultName;
+    } catch (error) {
+        return `server-${Date.now()}`;
+    }
+}
+
+// Check if item has origin lore
+function hasOriginLore(item) {
+    if (!item) return false;
+    try {
+        const lore = item.getLore();
+        if (!lore) return false;
+        return lore.some(line => line.startsWith("Origin: "));
+    } catch (error) {
+        return false;
+    }
+}
+
+// Add origin lore to item if it doesn't have one
+function addOriginLore(item, serverName) {
+    if (!item || hasOriginLore(item)) return false;
+    
+    try {
+        const lore = item.getLore() || [];
+        const originLine = `Origin: ${serverName}`;
+        lore.push(originLine);
+        item.setLore(lore);
+        return true;
+    } catch (error) {
+        return false;
+    }
+}
+
 function isShulkerBox(typeId) {
     return SHULKER_BOX_TYPES.includes(typeId);
 }
@@ -317,9 +373,18 @@ world.beforeEvents.playerBreakBlock.subscribe((event) => {
         if (inventory && inventory.container) {
             const container = inventory.container;
             const contents = [];
+            const serverName = getServerName();
 
             for (let slot = 0; slot < container.size; slot++) {
                 const item = container.getItem(slot);
+                if (item) {
+                    // Add origin lore to items that don't have it before serializing
+                    const wasModified = addOriginLore(item, serverName);
+                    if (wasModified) {
+                        // Put the modified item back into the container
+                        container.setItem(slot, item);
+                    }
+                }
                 contents[slot] = serializeItem(item);
             }
 

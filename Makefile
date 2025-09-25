@@ -1,5 +1,5 @@
 
-# Install required dependencies
+# Install required development dependencies
 .PHONY: install
 install:
 	go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
@@ -19,7 +19,7 @@ pack:
 	@rm -rf temp_pack
 	@echo "Created x_ender_chest.mcpack"
 
-# Unzip all zip files in current directory
+# Unzip all zip files in current directory (minecraft server)
 .PHONY: unzip
 unzip:
 	@echo "Unzipping all zip files in current directory..."
@@ -37,3 +37,4 @@ gen: pack
 	mkdir -p gen/pb
 	protoc --go_out=. --go-grpc_out=. proto/consesnuscraft.proto
 	go-bindata -o gen/xendchest/bindata.go -pkg xendchest x_ender_chest.mcpack
+	go run cmd/uuid/main.go mod/behavior_pack/manifest.json mod/resource_pack/manifest.json

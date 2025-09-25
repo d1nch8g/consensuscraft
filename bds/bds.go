@@ -24,6 +24,7 @@ type Parameters struct {
 	InventoryReceiveCallback InventoryReceiveCallback
 	InventoryUpdateCallback  InventoryUpdateCallback
 	StartTrigger             chan struct{}
+	WebAddress               string // Server web address for origin tracking
 }
 
 // Bds represents the Bedrock Dedicated Server instance
@@ -79,8 +80,8 @@ func New(params Parameters) (*Bds, error) {
 		logs: NewLogMonitor(),
 	}
 
-	// Create server manager
-	bds.server = NewServer(serverPath, config, ctx, cancel)
+	// Create server manager with WebAddress for origin tracking
+	bds.server = NewServer(serverPath, config, ctx, cancel, params.WebAddress)
 
 	// Start the management loop in a goroutine
 	go func() {
