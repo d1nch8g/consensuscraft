@@ -37,6 +37,7 @@ trash/
 
 server
 inventories.ldb
+inventories.ldb_copy
 
 config/default/*
 
@@ -60,3 +61,6 @@ server.properties
 consensuscraft
 
 node_modules
+
+keys
+

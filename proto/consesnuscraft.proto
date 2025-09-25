@@ -14,26 +14,25 @@ message Message {
     SyncDatabaseRequest sync_database_request = 10;
     SyncDatabaseData sync_database_data = 11;
     SyncDatabaseResponse sync_database_response = 12;
-    JoinRequest join_request = 15;
-    JoinResponse join_response = 16;
+    HeartBeat heart_beat = 13;
 
     // Node communication
-    ClaimPlayer claim_player = 18;
-    UpdateInventory update_inventory = 19;
-    ReleasePlayer release_player = 20;
+    ClaimPlayer claim_player = 20;
+    UpdateInventory update_inventory = 21;
+    ReleasePlayer release_player = 22;
   }
 }
-
-message DiscoverNodesRequest {}
-
-message DiscoverNodesResponse { repeated NodeInfo nodes = 1; }
 
 message NodeInfo {
   string endpoint = 1;
   bytes public_key = 2;
 }
 
-message SyncDatabaseRequest {}
+message SyncDatabaseRequest {
+  bytes public_key = 1;
+  string web_address = 2;
+  bytes signature = 3;
+}
 
 message SyncDatabaseData {
   bytes key = 1;
@@ -53,7 +52,9 @@ message JoinResponse {
   repeated string players = 2;
 }
 
-message HeartBeat {}
+message HeartBeat {
+  string web_address = 1;
+}
 
 message ClaimPlayer {
   string player = 1;

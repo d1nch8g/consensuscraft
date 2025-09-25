@@ -28,8 +28,7 @@ type Message struct {
 	//	*Message_SyncDatabaseRequest
 	//	*Message_SyncDatabaseData
 	//	*Message_SyncDatabaseResponse
-	//	*Message_JoinRequest
-	//	*Message_JoinResponse
+	//	*Message_HeartBeat
 	//	*Message_ClaimPlayer
 	//	*Message_UpdateInventory
 	//	*Message_ReleasePlayer
@@ -102,19 +101,10 @@ func (x *Message) GetSyncDatabaseResponse() *SyncDatabaseResponse {
 	return nil
 }
 
-func (x *Message) GetJoinRequest() *JoinRequest {
+func (x *Message) GetHeartBeat() *HeartBeat {
 	if x != nil {
-		if x, ok := x.Content.(*Message_JoinRequest); ok {
-			return x.JoinRequest
-		}
-	}
-	return nil
-}
-
-func (x *Message) GetJoinResponse() *JoinResponse {
-	if x != nil {
-		if x, ok := x.Content.(*Message_JoinResponse); ok {
-			return x.JoinResponse
+		if x, ok := x.Content.(*Message_HeartBeat); ok {
+			return x.HeartBeat
 		}
 	}
 	return nil
@@ -164,25 +154,21 @@ type Message_SyncDatabaseResponse struct {
 	SyncDatabaseResponse *SyncDatabaseResponse `protobuf:"bytes,12,opt,name=sync_database_response,json=syncDatabaseResponse,proto3,oneof"`
 }
 
-type Message_JoinRequest struct {
-	JoinRequest *JoinRequest `protobuf:"bytes,15,opt,name=join_request,json=joinRequest,proto3,oneof"`
-}
-
-type Message_JoinResponse struct {
-	JoinResponse *JoinResponse `protobuf:"bytes,16,opt,name=join_response,json=joinResponse,proto3,oneof"`
+type Message_HeartBeat struct {
+	HeartBeat *HeartBeat `protobuf:"bytes,13,opt,name=heart_beat,json=heartBeat,proto3,oneof"`
 }
 
 type Message_ClaimPlayer struct {
 	// Node communication
-	ClaimPlayer *ClaimPlayer `protobuf:"bytes,18,opt,name=claim_player,json=claimPlayer,proto3,oneof"`
+	ClaimPlayer *ClaimPlayer `protobuf:"bytes,20,opt,name=claim_player,json=claimPlayer,proto3,oneof"`
 }
 
 type Message_UpdateInventory struct {
-	UpdateInventory *UpdateInventory `protobuf:"bytes,19,opt,name=update_inventory,json=updateInventory,proto3,oneof"`
+	UpdateInventory *UpdateInventory `protobuf:"bytes,21,opt,name=update_inventory,json=updateInventory,proto3,oneof"`
 }
 
 type Message_ReleasePlayer struct {
-	ReleasePlayer *ReleasePlayer `protobuf:"bytes,20,opt,name=release_player,json=releasePlayer,proto3,oneof"`
+	ReleasePlayer *ReleasePlayer `protobuf:"bytes,22,opt,name=release_player,json=releasePlayer,proto3,oneof"`
 }
 
 func (*Message_SyncDatabaseRequest) isMessage_Content() {}
@@ -191,95 +177,13 @@ func (*Message_SyncDatabaseData) isMessage_Content() {}
 
 func (*Message_SyncDatabaseResponse) isMessage_Content() {}
 
-func (*Message_JoinRequest) isMessage_Content() {}
-
-func (*Message_JoinResponse) isMessage_Content() {}
+func (*Message_HeartBeat) isMessage_Content() {}
 
 func (*Message_ClaimPlayer) isMessage_Content() {}
 
 func (*Message_UpdateInventory) isMessage_Content() {}
 
 func (*Message_ReleasePlayer) isMessage_Content() {}
-
-type DiscoverNodesRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *DiscoverNodesRequest) Reset() {
-	*x = DiscoverNodesRequest{}
-	mi := &file_proto_consesnuscraft_proto_msgTypes[1]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *DiscoverNodesRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*DiscoverNodesRequest) ProtoMessage() {}
-
-func (x *DiscoverNodesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_consesnuscraft_proto_msgTypes[1]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use DiscoverNodesRequest.ProtoReflect.Descriptor instead.
-func (*DiscoverNodesRequest) Descriptor() ([]byte, []int) {
-	return file_proto_consesnuscraft_proto_rawDescGZIP(), []int{1}
-}
-
-type DiscoverNodesResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Nodes         []*NodeInfo            `protobuf:"bytes,1,rep,name=nodes,proto3" json:"nodes,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *DiscoverNodesResponse) Reset() {
-	*x = DiscoverNodesResponse{}
-	mi := &file_proto_consesnuscraft_proto_msgTypes[2]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *DiscoverNodesResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*DiscoverNodesResponse) ProtoMessage() {}
-
-func (x *DiscoverNodesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_consesnuscraft_proto_msgTypes[2]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use DiscoverNodesResponse.ProtoReflect.Descriptor instead.
-func (*DiscoverNodesResponse) Descriptor() ([]byte, []int) {
-	return file_proto_consesnuscraft_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *DiscoverNodesResponse) GetNodes() []*NodeInfo {
-	if x != nil {
-		return x.Nodes
-	}
-	return nil
-}
 
 type NodeInfo struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -291,7 +195,7 @@ type NodeInfo struct {
 
 func (x *NodeInfo) Reset() {
 	*x = NodeInfo{}
-	mi := &file_proto_consesnuscraft_proto_msgTypes[3]
+	mi := &file_proto_consesnuscraft_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -303,7 +207,7 @@ func (x *NodeInfo) String() string {
 func (*NodeInfo) ProtoMessage() {}
 
 func (x *NodeInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_consesnuscraft_proto_msgTypes[3]
+	mi := &file_proto_consesnuscraft_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -316,7 +220,7 @@ func (x *NodeInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NodeInfo.ProtoReflect.Descriptor instead.
 func (*NodeInfo) Descriptor() ([]byte, []int) {
-	return file_proto_consesnuscraft_proto_rawDescGZIP(), []int{3}
+	return file_proto_consesnuscraft_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *NodeInfo) GetEndpoint() string {
@@ -335,13 +239,16 @@ func (x *NodeInfo) GetPublicKey() []byte {
 
 type SyncDatabaseRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	PublicKey     []byte                 `protobuf:"bytes,1,opt,name=public_key,json=publicKey,proto3" json:"public_key,omitempty"`
+	WebAddress    string                 `protobuf:"bytes,2,opt,name=web_address,json=webAddress,proto3" json:"web_address,omitempty"`
+	Signature     []byte                 `protobuf:"bytes,3,opt,name=signature,proto3" json:"signature,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *SyncDatabaseRequest) Reset() {
 	*x = SyncDatabaseRequest{}
-	mi := &file_proto_consesnuscraft_proto_msgTypes[4]
+	mi := &file_proto_consesnuscraft_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -353,7 +260,7 @@ func (x *SyncDatabaseRequest) String() string {
 func (*SyncDatabaseRequest) ProtoMessage() {}
 
 func (x *SyncDatabaseRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_consesnuscraft_proto_msgTypes[4]
+	mi := &file_proto_consesnuscraft_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -366,7 +273,28 @@ func (x *SyncDatabaseRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SyncDatabaseRequest.ProtoReflect.Descriptor instead.
 func (*SyncDatabaseRequest) Descriptor() ([]byte, []int) {
-	return file_proto_consesnuscraft_proto_rawDescGZIP(), []int{4}
+	return file_proto_consesnuscraft_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *SyncDatabaseRequest) GetPublicKey() []byte {
+	if x != nil {
+		return x.PublicKey
+	}
+	return nil
+}
+
+func (x *SyncDatabaseRequest) GetWebAddress() string {
+	if x != nil {
+		return x.WebAddress
+	}
+	return ""
+}
+
+func (x *SyncDatabaseRequest) GetSignature() []byte {
+	if x != nil {
+		return x.Signature
+	}
+	return nil
 }
 
 type SyncDatabaseData struct {
@@ -379,7 +307,7 @@ type SyncDatabaseData struct {
 
 func (x *SyncDatabaseData) Reset() {
 	*x = SyncDatabaseData{}
-	mi := &file_proto_consesnuscraft_proto_msgTypes[5]
+	mi := &file_proto_consesnuscraft_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -391,7 +319,7 @@ func (x *SyncDatabaseData) String() string {
 func (*SyncDatabaseData) ProtoMessage() {}
 
 func (x *SyncDatabaseData) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_consesnuscraft_proto_msgTypes[5]
+	mi := &file_proto_consesnuscraft_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -404,7 +332,7 @@ func (x *SyncDatabaseData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SyncDatabaseData.ProtoReflect.Descriptor instead.
 func (*SyncDatabaseData) Descriptor() ([]byte, []int) {
-	return file_proto_consesnuscraft_proto_rawDescGZIP(), []int{5}
+	return file_proto_consesnuscraft_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *SyncDatabaseData) GetKey() []byte {
@@ -429,7 +357,7 @@ type SyncDatabaseResponse struct {
 
 func (x *SyncDatabaseResponse) Reset() {
 	*x = SyncDatabaseResponse{}
-	mi := &file_proto_consesnuscraft_proto_msgTypes[6]
+	mi := &file_proto_consesnuscraft_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -441,7 +369,7 @@ func (x *SyncDatabaseResponse) String() string {
 func (*SyncDatabaseResponse) ProtoMessage() {}
 
 func (x *SyncDatabaseResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_consesnuscraft_proto_msgTypes[6]
+	mi := &file_proto_consesnuscraft_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -454,7 +382,7 @@ func (x *SyncDatabaseResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SyncDatabaseResponse.ProtoReflect.Descriptor instead.
 func (*SyncDatabaseResponse) Descriptor() ([]byte, []int) {
-	return file_proto_consesnuscraft_proto_rawDescGZIP(), []int{6}
+	return file_proto_consesnuscraft_proto_rawDescGZIP(), []int{4}
 }
 
 type JoinRequest struct {
@@ -468,7 +396,7 @@ type JoinRequest struct {
 
 func (x *JoinRequest) Reset() {
 	*x = JoinRequest{}
-	mi := &file_proto_consesnuscraft_proto_msgTypes[7]
+	mi := &file_proto_consesnuscraft_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -480,7 +408,7 @@ func (x *JoinRequest) String() string {
 func (*JoinRequest) ProtoMessage() {}
 
 func (x *JoinRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_consesnuscraft_proto_msgTypes[7]
+	mi := &file_proto_consesnuscraft_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -493,7 +421,7 @@ func (x *JoinRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use JoinRequest.ProtoReflect.Descriptor instead.
 func (*JoinRequest) Descriptor() ([]byte, []int) {
-	return file_proto_consesnuscraft_proto_rawDescGZIP(), []int{7}
+	return file_proto_consesnuscraft_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *JoinRequest) GetPublicKey() []byte {
@@ -527,7 +455,7 @@ type JoinResponse struct {
 
 func (x *JoinResponse) Reset() {
 	*x = JoinResponse{}
-	mi := &file_proto_consesnuscraft_proto_msgTypes[8]
+	mi := &file_proto_consesnuscraft_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -539,7 +467,7 @@ func (x *JoinResponse) String() string {
 func (*JoinResponse) ProtoMessage() {}
 
 func (x *JoinResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_consesnuscraft_proto_msgTypes[8]
+	mi := &file_proto_consesnuscraft_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -552,7 +480,7 @@ func (x *JoinResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use JoinResponse.ProtoReflect.Descriptor instead.
 func (*JoinResponse) Descriptor() ([]byte, []int) {
-	return file_proto_consesnuscraft_proto_rawDescGZIP(), []int{8}
+	return file_proto_consesnuscraft_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *JoinResponse) GetAccepted() bool {
@@ -571,13 +499,14 @@ func (x *JoinResponse) GetPlayers() []string {
 
 type HeartBeat struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	WebAddress    string                 `protobuf:"bytes,1,opt,name=web_address,json=webAddress,proto3" json:"web_address,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *HeartBeat) Reset() {
 	*x = HeartBeat{}
-	mi := &file_proto_consesnuscraft_proto_msgTypes[9]
+	mi := &file_proto_consesnuscraft_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -589,7 +518,7 @@ func (x *HeartBeat) String() string {
 func (*HeartBeat) ProtoMessage() {}
 
 func (x *HeartBeat) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_consesnuscraft_proto_msgTypes[9]
+	mi := &file_proto_consesnuscraft_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -602,7 +531,14 @@ func (x *HeartBeat) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HeartBeat.ProtoReflect.Descriptor instead.
 func (*HeartBeat) Descriptor() ([]byte, []int) {
-	return file_proto_consesnuscraft_proto_rawDescGZIP(), []int{9}
+	return file_proto_consesnuscraft_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *HeartBeat) GetWebAddress() string {
+	if x != nil {
+		return x.WebAddress
+	}
+	return ""
 }
 
 type ClaimPlayer struct {
@@ -615,7 +551,7 @@ type ClaimPlayer struct {
 
 func (x *ClaimPlayer) Reset() {
 	*x = ClaimPlayer{}
-	mi := &file_proto_consesnuscraft_proto_msgTypes[10]
+	mi := &file_proto_consesnuscraft_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -627,7 +563,7 @@ func (x *ClaimPlayer) String() string {
 func (*ClaimPlayer) ProtoMessage() {}
 
 func (x *ClaimPlayer) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_consesnuscraft_proto_msgTypes[10]
+	mi := &file_proto_consesnuscraft_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -640,7 +576,7 @@ func (x *ClaimPlayer) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClaimPlayer.ProtoReflect.Descriptor instead.
 func (*ClaimPlayer) Descriptor() ([]byte, []int) {
-	return file_proto_consesnuscraft_proto_rawDescGZIP(), []int{10}
+	return file_proto_consesnuscraft_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *ClaimPlayer) GetPlayer() string {
@@ -668,7 +604,7 @@ type UpdateInventory struct {
 
 func (x *UpdateInventory) Reset() {
 	*x = UpdateInventory{}
-	mi := &file_proto_consesnuscraft_proto_msgTypes[11]
+	mi := &file_proto_consesnuscraft_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -680,7 +616,7 @@ func (x *UpdateInventory) String() string {
 func (*UpdateInventory) ProtoMessage() {}
 
 func (x *UpdateInventory) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_consesnuscraft_proto_msgTypes[11]
+	mi := &file_proto_consesnuscraft_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -693,7 +629,7 @@ func (x *UpdateInventory) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateInventory.ProtoReflect.Descriptor instead.
 func (*UpdateInventory) Descriptor() ([]byte, []int) {
-	return file_proto_consesnuscraft_proto_rawDescGZIP(), []int{11}
+	return file_proto_consesnuscraft_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *UpdateInventory) GetPlayer() string {
@@ -727,7 +663,7 @@ type ReleasePlayer struct {
 
 func (x *ReleasePlayer) Reset() {
 	*x = ReleasePlayer{}
-	mi := &file_proto_consesnuscraft_proto_msgTypes[12]
+	mi := &file_proto_consesnuscraft_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -739,7 +675,7 @@ func (x *ReleasePlayer) String() string {
 func (*ReleasePlayer) ProtoMessage() {}
 
 func (x *ReleasePlayer) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_consesnuscraft_proto_msgTypes[12]
+	mi := &file_proto_consesnuscraft_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -752,7 +688,7 @@ func (x *ReleasePlayer) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReleasePlayer.ProtoReflect.Descriptor instead.
 func (*ReleasePlayer) Descriptor() ([]byte, []int) {
-	return file_proto_consesnuscraft_proto_rawDescGZIP(), []int{12}
+	return file_proto_consesnuscraft_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *ReleasePlayer) GetPlayer() string {
@@ -773,26 +709,28 @@ var File_proto_consesnuscraft_proto protoreflect.FileDescriptor
 
 const file_proto_consesnuscraft_proto_rawDesc = "" +
 	"\n" +
-	"\x1aproto/consesnuscraft.proto\x12\x0econsensuscraft\"\xfe\x04\n" +
+	"\x1aproto/consesnuscraft.proto\x12\x0econsensuscraft\"\xb3\x04\n" +
 	"\aMessage\x12Y\n" +
 	"\x15sync_database_request\x18\n" +
 	" \x01(\v2#.consensuscraft.SyncDatabaseRequestH\x00R\x13syncDatabaseRequest\x12P\n" +
 	"\x12sync_database_data\x18\v \x01(\v2 .consensuscraft.SyncDatabaseDataH\x00R\x10syncDatabaseData\x12\\\n" +
-	"\x16sync_database_response\x18\f \x01(\v2$.consensuscraft.SyncDatabaseResponseH\x00R\x14syncDatabaseResponse\x12@\n" +
-	"\fjoin_request\x18\x0f \x01(\v2\x1b.consensuscraft.JoinRequestH\x00R\vjoinRequest\x12C\n" +
-	"\rjoin_response\x18\x10 \x01(\v2\x1c.consensuscraft.JoinResponseH\x00R\fjoinResponse\x12@\n" +
-	"\fclaim_player\x18\x12 \x01(\v2\x1b.consensuscraft.ClaimPlayerH\x00R\vclaimPlayer\x12L\n" +
-	"\x10update_inventory\x18\x13 \x01(\v2\x1f.consensuscraft.UpdateInventoryH\x00R\x0fupdateInventory\x12F\n" +
-	"\x0erelease_player\x18\x14 \x01(\v2\x1d.consensuscraft.ReleasePlayerH\x00R\rreleasePlayerB\t\n" +
-	"\acontent\"\x16\n" +
-	"\x14DiscoverNodesRequest\"G\n" +
-	"\x15DiscoverNodesResponse\x12.\n" +
-	"\x05nodes\x18\x01 \x03(\v2\x18.consensuscraft.NodeInfoR\x05nodes\"E\n" +
+	"\x16sync_database_response\x18\f \x01(\v2$.consensuscraft.SyncDatabaseResponseH\x00R\x14syncDatabaseResponse\x12:\n" +
+	"\n" +
+	"heart_beat\x18\r \x01(\v2\x19.consensuscraft.HeartBeatH\x00R\theartBeat\x12@\n" +
+	"\fclaim_player\x18\x14 \x01(\v2\x1b.consensuscraft.ClaimPlayerH\x00R\vclaimPlayer\x12L\n" +
+	"\x10update_inventory\x18\x15 \x01(\v2\x1f.consensuscraft.UpdateInventoryH\x00R\x0fupdateInventory\x12F\n" +
+	"\x0erelease_player\x18\x16 \x01(\v2\x1d.consensuscraft.ReleasePlayerH\x00R\rreleasePlayerB\t\n" +
+	"\acontent\"E\n" +
 	"\bNodeInfo\x12\x1a\n" +
 	"\bendpoint\x18\x01 \x01(\tR\bendpoint\x12\x1d\n" +
 	"\n" +
-	"public_key\x18\x02 \x01(\fR\tpublicKey\"\x15\n" +
-	"\x13SyncDatabaseRequest\":\n" +
+	"public_key\x18\x02 \x01(\fR\tpublicKey\"s\n" +
+	"\x13SyncDatabaseRequest\x12\x1d\n" +
+	"\n" +
+	"public_key\x18\x01 \x01(\fR\tpublicKey\x12\x1f\n" +
+	"\vweb_address\x18\x02 \x01(\tR\n" +
+	"webAddress\x12\x1c\n" +
+	"\tsignature\x18\x03 \x01(\fR\tsignature\":\n" +
 	"\x10SyncDatabaseData\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\fR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\fR\x05value\"\x16\n" +
@@ -804,8 +742,10 @@ const file_proto_consesnuscraft_proto_rawDesc = "" +
 	"\tsignature\x18\x03 \x01(\fR\tsignature\"D\n" +
 	"\fJoinResponse\x12\x1a\n" +
 	"\baccepted\x18\x01 \x01(\bR\baccepted\x12\x18\n" +
-	"\aplayers\x18\x02 \x03(\tR\aplayers\"\v\n" +
-	"\tHeartBeat\"C\n" +
+	"\aplayers\x18\x02 \x03(\tR\aplayers\",\n" +
+	"\tHeartBeat\x12\x1f\n" +
+	"\vweb_address\x18\x01 \x01(\tR\n" +
+	"webAddress\"C\n" +
 	"\vClaimPlayer\x12\x16\n" +
 	"\x06player\x18\x01 \x01(\tR\x06player\x12\x1c\n" +
 	"\tsignature\x18\x02 \x01(\fR\tsignature\"e\n" +
@@ -832,39 +772,35 @@ func file_proto_consesnuscraft_proto_rawDescGZIP() []byte {
 	return file_proto_consesnuscraft_proto_rawDescData
 }
 
-var file_proto_consesnuscraft_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_proto_consesnuscraft_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_proto_consesnuscraft_proto_goTypes = []any{
-	(*Message)(nil),               // 0: consensuscraft.Message
-	(*DiscoverNodesRequest)(nil),  // 1: consensuscraft.DiscoverNodesRequest
-	(*DiscoverNodesResponse)(nil), // 2: consensuscraft.DiscoverNodesResponse
-	(*NodeInfo)(nil),              // 3: consensuscraft.NodeInfo
-	(*SyncDatabaseRequest)(nil),   // 4: consensuscraft.SyncDatabaseRequest
-	(*SyncDatabaseData)(nil),      // 5: consensuscraft.SyncDatabaseData
-	(*SyncDatabaseResponse)(nil),  // 6: consensuscraft.SyncDatabaseResponse
-	(*JoinRequest)(nil),           // 7: consensuscraft.JoinRequest
-	(*JoinResponse)(nil),          // 8: consensuscraft.JoinResponse
-	(*HeartBeat)(nil),             // 9: consensuscraft.HeartBeat
-	(*ClaimPlayer)(nil),           // 10: consensuscraft.ClaimPlayer
-	(*UpdateInventory)(nil),       // 11: consensuscraft.UpdateInventory
-	(*ReleasePlayer)(nil),         // 12: consensuscraft.ReleasePlayer
+	(*Message)(nil),              // 0: consensuscraft.Message
+	(*NodeInfo)(nil),             // 1: consensuscraft.NodeInfo
+	(*SyncDatabaseRequest)(nil),  // 2: consensuscraft.SyncDatabaseRequest
+	(*SyncDatabaseData)(nil),     // 3: consensuscraft.SyncDatabaseData
+	(*SyncDatabaseResponse)(nil), // 4: consensuscraft.SyncDatabaseResponse
+	(*JoinRequest)(nil),          // 5: consensuscraft.JoinRequest
+	(*JoinResponse)(nil),         // 6: consensuscraft.JoinResponse
+	(*HeartBeat)(nil),            // 7: consensuscraft.HeartBeat
+	(*ClaimPlayer)(nil),          // 8: consensuscraft.ClaimPlayer
+	(*UpdateInventory)(nil),      // 9: consensuscraft.UpdateInventory
+	(*ReleasePlayer)(nil),        // 10: consensuscraft.ReleasePlayer
 }
 var file_proto_consesnuscraft_proto_depIdxs = []int32{
-	4,  // 0: consensuscraft.Message.sync_database_request:type_name -> consensuscraft.SyncDatabaseRequest
-	5,  // 1: consensuscraft.Message.sync_database_data:type_name -> consensuscraft.SyncDatabaseData
-	6,  // 2: consensuscraft.Message.sync_database_response:type_name -> consensuscraft.SyncDatabaseResponse
-	7,  // 3: consensuscraft.Message.join_request:type_name -> consensuscraft.JoinRequest
-	8,  // 4: consensuscraft.Message.join_response:type_name -> consensuscraft.JoinResponse
-	10, // 5: consensuscraft.Message.claim_player:type_name -> consensuscraft.ClaimPlayer
-	11, // 6: consensuscraft.Message.update_inventory:type_name -> consensuscraft.UpdateInventory
-	12, // 7: consensuscraft.Message.release_player:type_name -> consensuscraft.ReleasePlayer
-	3,  // 8: consensuscraft.DiscoverNodesResponse.nodes:type_name -> consensuscraft.NodeInfo
-	0,  // 9: consensuscraft.ConsensusCraftService.Stream:input_type -> consensuscraft.Message
-	0,  // 10: consensuscraft.ConsensusCraftService.Stream:output_type -> consensuscraft.Message
-	10, // [10:11] is the sub-list for method output_type
-	9,  // [9:10] is the sub-list for method input_type
-	9,  // [9:9] is the sub-list for extension type_name
-	9,  // [9:9] is the sub-list for extension extendee
-	0,  // [0:9] is the sub-list for field type_name
+	2,  // 0: consensuscraft.Message.sync_database_request:type_name -> consensuscraft.SyncDatabaseRequest
+	3,  // 1: consensuscraft.Message.sync_database_data:type_name -> consensuscraft.SyncDatabaseData
+	4,  // 2: consensuscraft.Message.sync_database_response:type_name -> consensuscraft.SyncDatabaseResponse
+	7,  // 3: consensuscraft.Message.heart_beat:type_name -> consensuscraft.HeartBeat
+	8,  // 4: consensuscraft.Message.claim_player:type_name -> consensuscraft.ClaimPlayer
+	9,  // 5: consensuscraft.Message.update_inventory:type_name -> consensuscraft.UpdateInventory
+	10, // 6: consensuscraft.Message.release_player:type_name -> consensuscraft.ReleasePlayer
+	0,  // 7: consensuscraft.ConsensusCraftService.Stream:input_type -> consensuscraft.Message
+	0,  // 8: consensuscraft.ConsensusCraftService.Stream:output_type -> consensuscraft.Message
+	8,  // [8:9] is the sub-list for method output_type
+	7,  // [7:8] is the sub-list for method input_type
+	7,  // [7:7] is the sub-list for extension type_name
+	7,  // [7:7] is the sub-list for extension extendee
+	0,  // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_proto_consesnuscraft_proto_init() }
@@ -876,8 +812,7 @@ func file_proto_consesnuscraft_proto_init() {
 		(*Message_SyncDatabaseRequest)(nil),
 		(*Message_SyncDatabaseData)(nil),
 		(*Message_SyncDatabaseResponse)(nil),
-		(*Message_JoinRequest)(nil),
-		(*Message_JoinResponse)(nil),
+		(*Message_HeartBeat)(nil),
 		(*Message_ClaimPlayer)(nil),
 		(*Message_UpdateInventory)(nil),
 		(*Message_ReleasePlayer)(nil),
@@ -888,7 +823,7 @@ func file_proto_consesnuscraft_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_consesnuscraft_proto_rawDesc), len(file_proto_consesnuscraft_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   13,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
