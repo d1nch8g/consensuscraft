@@ -21,7 +21,7 @@
       21,
       102
     ],
-    "uuid": "bd7e65eb-a3c9-490f-87bb-ab048cc6ef4d",
+    "uuid": "84c09f65-3d0b-4859-9e51-d0c981d17358",
     "version": [
       1,
       0,
@@ -31,7 +31,7 @@
   "modules": [
     {
       "type": "data",
-      "uuid": "e92871b5-ced8-402b-ace8-d8fa0706487d",
+      "uuid": "6ff195c7-a9ae-4911-8484-0ad0a069cf33",
       "version": [
         1,
         0,
@@ -40,7 +40,7 @@
     },
     {
       "type": "script",
-      "uuid": "392f5ceb-8639-4ceb-9439-b25632af4acb",
+      "uuid": "14cfa321-efa9-4ea8-bf08-42f66cd2dde6",
       "version": [
         1,
         0,

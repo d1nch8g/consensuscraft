@@ -23,7 +23,7 @@ const (
 
 type RegisterNodeRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Address       string                 `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
+	WebAddress    string                 `protobuf:"bytes,1,opt,name=web_address,json=webAddress,proto3" json:"web_address,omitempty"`
 	PublicKey     []byte                 `protobuf:"bytes,2,opt,name=public_key,json=publicKey,proto3" json:"public_key,omitempty"`
 	Signature     []byte                 `protobuf:"bytes,3,opt,name=signature,proto3" json:"signature,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -60,9 +60,9 @@ func (*RegisterNodeRequest) Descriptor() ([]byte, []int) {
 	return file_proto_consesnuscraft_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *RegisterNodeRequest) GetAddress() string {
+func (x *RegisterNodeRequest) GetWebAddress() string {
 	if x != nil {
-		return x.Address
+		return x.WebAddress
 	}
 	return ""
 }
@@ -137,6 +137,8 @@ type InventoryMessage struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	PlayerName    string                 `protobuf:"bytes,1,opt,name=player_name,json=playerName,proto3" json:"player_name,omitempty"`
 	InventoryData []byte                 `protobuf:"bytes,2,opt,name=inventory_data,json=inventoryData,proto3" json:"inventory_data,omitempty"`
+	WebAddress    string                 `protobuf:"bytes,3,opt,name=web_address,json=webAddress,proto3" json:"web_address,omitempty"`
+	Signature     []byte                 `protobuf:"bytes,4,opt,name=signature,proto3" json:"signature,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -185,23 +187,41 @@ func (x *InventoryMessage) GetInventoryData() []byte {
 	return nil
 }
 
+func (x *InventoryMessage) GetWebAddress() string {
+	if x != nil {
+		return x.WebAddress
+	}
+	return ""
+}
+
+func (x *InventoryMessage) GetSignature() []byte {
+	if x != nil {
+		return x.Signature
+	}
+	return nil
+}
+
 var File_proto_consesnuscraft_proto protoreflect.FileDescriptor
 
 const file_proto_consesnuscraft_proto_rawDesc = "" +
 	"\n" +
-	"\x1aproto/consesnuscraft.proto\x12\x0econsensuscraft\"l\n" +
-	"\x13RegisterNodeRequest\x12\x18\n" +
-	"\aaddress\x18\x01 \x01(\tR\aaddress\x12\x1d\n" +
+	"\x1aproto/consesnuscraft.proto\x12\x0econsensuscraft\"s\n" +
+	"\x13RegisterNodeRequest\x12\x1f\n" +
+	"\vweb_address\x18\x01 \x01(\tR\n" +
+	"webAddress\x12\x1d\n" +
 	"\n" +
 	"public_key\x18\x02 \x01(\fR\tpublicKey\x12\x1c\n" +
 	"\tsignature\x18\x03 \x01(\fR\tsignature\"7\n" +
 	"\rDatabaseEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\fR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\fR\x05value\"Z\n" +
+	"\x05value\x18\x02 \x01(\fR\x05value\"\x99\x01\n" +
 	"\x10InventoryMessage\x12\x1f\n" +
 	"\vplayer_name\x18\x01 \x01(\tR\n" +
 	"playerName\x12%\n" +
-	"\x0einventory_data\x18\x02 \x01(\fR\rinventoryData2\xc4\x01\n" +
+	"\x0einventory_data\x18\x02 \x01(\fR\rinventoryData\x12\x1f\n" +
+	"\vweb_address\x18\x03 \x01(\tR\n" +
+	"webAddress\x12\x1c\n" +
+	"\tsignature\x18\x04 \x01(\fR\tsignature2\xc4\x01\n" +
 	"\x15ConsensusCraftService\x12T\n" +
 	"\fRegisterNode\x12#.consensuscraft.RegisterNodeRequest\x1a\x1d.consensuscraft.DatabaseEntry0\x01\x12U\n" +
 	"\vInventories\x12 .consensuscraft.InventoryMessage\x1a .consensuscraft.InventoryMessage(\x010\x01B\n" +
