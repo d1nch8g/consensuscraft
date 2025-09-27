@@ -5,69 +5,25 @@ package consensuscraft;
 option go_package = "./gen/pb";
 
 service ConsensusCraftService {
-  rpc Stream(stream Message) returns (stream Message);
+  // Register a node with address, pubkey and signature, returns database data
+  rpc RegisterNode(RegisterNodeRequest) returns (stream DatabaseEntry);
+  
+  // Bidirectional stream for inventory updates between nodes
+  rpc Inventories(stream InventoryMessage) returns (stream InventoryMessage);
 }
 
-message Message {
-  oneof content {
-    // Network
-    SyncDatabaseRequest sync_database_request = 10;
-    SyncDatabaseData sync_database_data = 11;
-    SyncDatabaseResponse sync_database_response = 12;
-    HeartBeat heart_beat = 13;
-
-    // Node communication
-    ClaimPlayer claim_player = 20;
-    UpdateInventory update_inventory = 21;
-    ReleasePlayer release_player = 22;
-  }
-}
-
-message NodeInfo {
-  string endpoint = 1;
+message RegisterNodeRequest {
+  string address = 1;
   bytes public_key = 2;
-}
-
-message SyncDatabaseRequest {
-  bytes public_key = 1;
-  string web_address = 2;
   bytes signature = 3;
 }
 
-message SyncDatabaseData {
+message DatabaseEntry {
   bytes key = 1;
   bytes value = 2;
 }
 
-message SyncDatabaseResponse {}
-
-message JoinRequest {
-  bytes public_key = 1;
-  string endpoint = 2;
-  bytes signature = 3;
-}
-
-message JoinResponse {
-  bool accepted = 1;
-  repeated string players = 2;
-}
-
-message HeartBeat {
-  string web_address = 1;
-}
-
-message ClaimPlayer {
-  string player = 1;
-  bytes signature = 2;
-}
-
-message UpdateInventory {
-  string player = 1;
-  bytes inventory = 2;
-  bytes signature = 3;
-}
-
-message ReleasePlayer {
-  string player = 1;
-  bytes signature = 2;
+message InventoryMessage {
+  string player_name = 1;
+  bytes inventory_data = 2;
 }

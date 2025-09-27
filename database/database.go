@@ -543,8 +543,8 @@ func (db *DB) GetPlayerInventories(player string) ([]InventoryEntry, error) {
 	return playerInv.Entries, nil
 }
 
-func (db *DB) StreamAll() <-chan *pb.SyncDatabaseData {
-	ch := make(chan *pb.SyncDatabaseData, 100)
+func (db *DB) StreamAll() <-chan *pb.DatabaseEntry {
+	ch := make(chan *pb.DatabaseEntry, 100)
 
 	go func() {
 		defer close(ch)
@@ -569,7 +569,7 @@ func (db *DB) StreamAll() <-chan *pb.SyncDatabaseData {
 			value := append([]byte(nil), iter.Value()...)
 
 			select {
-			case ch <- &pb.SyncDatabaseData{
+			case ch <- &pb.DatabaseEntry{
 				Key:   key,
 				Value: value,
 			}:
@@ -590,7 +590,7 @@ func (db *DB) StreamAll() <-chan *pb.SyncDatabaseData {
 				if change.deleted {
 					// Send deletion marker (empty value)
 					select {
-					case ch <- &pb.SyncDatabaseData{
+					case ch <- &pb.DatabaseEntry{
 						Key:   []byte(change.player),
 						Value: nil,
 					}:
@@ -603,7 +603,7 @@ func (db *DB) StreamAll() <-chan *pb.SyncDatabaseData {
 					data, err := db.leveldb.Get(key, nil)
 					if err == nil {
 						select {
-						case ch <- &pb.SyncDatabaseData{
+						case ch <- &pb.DatabaseEntry{
 							Key:   key,
 							Value: data,
 						}:
