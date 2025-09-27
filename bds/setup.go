@@ -57,10 +57,9 @@ func (s *Setup) EnsureServer() (string, error) {
 		if err := s.extractServer(); err != nil {
 			return "", fmt.Errorf("failed to extract server: %w", err)
 		}
-		// Return the path to the extracted server executable
-		extractedPath := filepath.Join("server", serverExecutable)
-		logger.Printf("Server extracted to: %s", extractedPath)
-		serverPath = extractedPath
+		// Return the path to the extracted server executable in current directory
+		logger.Printf("Server extracted to: %s", serverExecutable)
+		serverPath = serverExecutable
 	} else {
 		// Scenario 2.3: Nothing in current directory - download and setup
 		logger.Println("No server found, downloading minecraft server...")
@@ -68,10 +67,9 @@ func (s *Setup) EnsureServer() (string, error) {
 			return "", fmt.Errorf("failed to download and setup server: %w", err)
 		}
 
-		// Return the path to the downloaded and extracted server executable
-		downloadedPath := filepath.Join("server", serverExecutable)
-		logger.Printf("Server downloaded and extracted to: %s", downloadedPath)
-		serverPath = downloadedPath
+		// Return the path to the downloaded and extracted server executable in current directory
+		logger.Printf("Server downloaded and extracted to: %s", serverExecutable)
+		serverPath = serverExecutable
 	}
 
 	// Always ensure mcpack is installed on server startup
@@ -136,7 +134,7 @@ func (s *Setup) downloadAndSetup() error {
 		return fmt.Errorf("failed to download server: %w", err)
 	}
 
-	// Extract server to server directory
+	// Extract server to current directory
 	if err := s.extractServer(); err != nil {
 		return fmt.Errorf("failed to extract server: %w", err)
 	}
@@ -149,8 +147,21 @@ func (s *Setup) downloadAndSetup() error {
 func (s *Setup) downloadServerZip() error {
 	logger.Printf("Downloading server from %s...", serverDownloadURL)
 
-	// Create HTTP request
-	resp, err := http.Get(serverDownloadURL)
+	// Create a custom HTTP client with proper headers
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", serverDownloadURL, nil)
+	if err != nil {
+		return fmt.Errorf("failed to create request: %w", err)
+	}
+
+	// Add headers that are required by the Minecraft download server
+	req.Header.Set("User-Agent", "Wget/1.21.3")
+	req.Header.Set("Accept", "*/*")
+	req.Header.Set("Accept-Encoding", "identity")
+	req.Header.Set("Connection", "Keep-Alive")
+
+	// Execute the request
+	resp, err := client.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to download server: %w", err)
 	}
@@ -177,7 +188,7 @@ func (s *Setup) downloadServerZip() error {
 	return nil
 }
 
-// extractServer extracts the bedrock server zip to the server directory
+// extractServer extracts the bedrock server zip to the current directory
 func (s *Setup) extractServer() error {
 	logger.Println("Extracting server...")
 
@@ -194,14 +205,9 @@ func (s *Setup) extractServer() error {
 	}
 	defer reader.Close()
 
-	// Create server directory
-	if err := os.MkdirAll("server", 0755); err != nil {
-		return fmt.Errorf("failed to create server directory: %w", err)
-	}
-
-	// Extract files
+	// Extract files directly to current directory
 	for _, file := range reader.File {
-		path := filepath.Join("server", file.Name)
+		path := file.Name
 
 		// Create directory if needed
 		if file.FileInfo().IsDir() {
@@ -224,8 +230,7 @@ func (s *Setup) extractServer() error {
 
 	// Make server executable (only needed on Unix-like systems)
 	if runtime.GOOS != "windows" {
-		serverPath := filepath.Join("server", serverExecutable)
-		if err := os.Chmod(serverPath, 0755); err != nil {
+		if err := os.Chmod(serverExecutable, 0755); err != nil {
 			return fmt.Errorf("failed to make server executable: %w", err)
 		}
 	}

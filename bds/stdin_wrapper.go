@@ -73,8 +73,6 @@ func (sw *StdinWrapper) inputLoop() {
 		// Send command to server
 		if err := sw.sendCommand(command); err != nil {
 			logger.Printf("Failed to send command to server: %v", err)
-		} else {
-			logger.Printf("Sent command: %s", command)
 		}
 	}
 }
