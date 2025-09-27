@@ -14,19 +14,15 @@ import (
 // LogMonitor handles server log monitoring and parsing
 type LogMonitor struct {
 	// Compiled regex patterns for log parsing
-	playerConnectedRegex    *regexp.Regexp
-	playerSpawnedRegex      *regexp.Regexp
-	playerDisconnectedRegex *regexp.Regexp
-	enderChestRegex         *regexp.Regexp
+	playerSpawnedRegex *regexp.Regexp
+	enderChestRegex    *regexp.Regexp
 }
 
 // NewLogMonitor creates a new log monitor
 func NewLogMonitor() *LogMonitor {
 	return &LogMonitor{
-		playerConnectedRegex:    regexp.MustCompile(`Player connected: ([^,]+),`),
-		playerSpawnedRegex:      regexp.MustCompile(`Player Spawned: ([^,\s]+)`),
-		playerDisconnectedRegex: regexp.MustCompile(`Player disconnected: ([^,]+),`),
-		enderChestRegex:         regexp.MustCompile(`\[X_ENDER_CHEST\]\[([^\]]+)\]\[(.+)\]`),
+		playerSpawnedRegex: regexp.MustCompile(`Player Spawned: ([^,\s]+)`),
+		enderChestRegex:    regexp.MustCompile(`\[X_ENDER_CHEST\]\[([^\]]+)\]\[(.+)\]`),
 	}
 }
 
@@ -58,18 +54,6 @@ func (lm *LogMonitor) monitorServerLogs(reader io.Reader, bds *Bds, params Param
 	for scanner.Scan() {
 		line := scanner.Text()
 
-		// Parse player connected events
-		if matches := lm.playerConnectedRegex.FindStringSubmatch(line); len(matches) > 1 {
-			playerName := strings.TrimSpace(matches[1])
-			logger.Printf("Player connected: %s", playerName)
-
-			select {
-			case bds.PlayerLogin <- playerName:
-			default:
-				logger.Printf("PlayerLogin channel full, dropping event for %s", playerName)
-			}
-		}
-
 		// Parse player spawned events - trigger inventory restoration
 		if matches := lm.playerSpawnedRegex.FindStringSubmatch(line); len(matches) > 1 {
 			playerName := strings.TrimSpace(matches[1])
@@ -85,18 +69,6 @@ func (lm *LogMonitor) monitorServerLogs(reader io.Reader, bds *Bds, params Param
 					logger.Printf("Failed to get inventory data for %s: %v", name, err)
 				}
 			}(playerName)
-		}
-
-		// Parse player disconnected events
-		if matches := lm.playerDisconnectedRegex.FindStringSubmatch(line); len(matches) > 1 {
-			playerName := strings.TrimSpace(matches[1])
-			logger.Printf("Player disconnected: %s", playerName)
-
-			select {
-			case bds.PlayerLogout <- playerName:
-			default:
-				logger.Printf("PlayerLogout channel full, dropping event for %s", playerName)
-			}
 		}
 
 		// Parse ender chest inventory updates

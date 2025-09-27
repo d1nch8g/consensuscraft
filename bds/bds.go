@@ -33,10 +33,6 @@ type Bds struct {
 	// Public channel for inventory updates
 	InventoryUpdate chan InventoryUpdate
 
-	// Public channels for player events
-	PlayerLogin  chan string
-	PlayerLogout chan string
-
 	// Internal components
 	server      *Server
 	config      *Config
@@ -72,8 +68,6 @@ func New(params Parameters) (*Bds, error) {
 
 	bds := &Bds{
 		InventoryUpdate: make(chan InventoryUpdate, 100),
-		PlayerLogin:     make(chan string, 100),
-		PlayerLogout:    make(chan string, 100),
 		config:          config,
 		inventory: NewInventoryManager(
 			params.InventoryReceiveCallback,
@@ -89,8 +83,6 @@ func New(params Parameters) (*Bds, error) {
 	go func() {
 		defer cancel()
 		defer close(bds.InventoryUpdate)
-		defer close(bds.PlayerLogin)
-		defer close(bds.PlayerLogout)
 
 		var serverProcess *exec.Cmd
 

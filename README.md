@@ -1,6 +1,6 @@
-# Consensuscraft - Cross-server Ender Chest Minecraft Bedrock Mod
+# Consensuscraft - Cross-server Ender Chest Minecraft Bedrock Server Wrapper
 
-This is a mod that provides ability to "wrap" bedrock server with a thing, which will allows cross-server ender chest storage. In can be basically installed on any bedrock server - connecting it to a network, or creating a new one if you wish.
+This is a mod that provides ability to "wrap" bedrock server with a thing, which will allow cross-server ender chest storage. In can be basically installed on any bedrock server - connecting it to a network, or creating a new one if you wish.
 
 <!--
 implement proper syncornization of database on node connection
