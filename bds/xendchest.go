@@ -101,10 +101,11 @@ func (mi *McpackInstaller) getPackUUIDs() error {
 				return fmt.Errorf("failed to parse %s: %w", file.Name, err)
 			}
 
-			if file.Name == "behavior_pack/manifest.json" {
+			switch file.Name {
+			case "behavior_pack/manifest.json":
 				mi.behaviorPackUUID = manifest.Header.UUID
 				logger.Printf("Found behavior pack UUID: %s", mi.behaviorPackUUID)
-			} else if file.Name == "resource_pack/manifest.json" {
+			case "resource_pack/manifest.json":
 				mi.resourcePackUUID = manifest.Header.UUID
 				logger.Printf("Found resource pack UUID: %s", mi.resourcePackUUID)
 			}

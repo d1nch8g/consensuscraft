@@ -36,8 +36,7 @@ type Bds struct {
 	// Internal components
 	server       *Server
 	config       *Config
-	inventory    *InventoryManager
-	logs         *LogMonitor
+	outputParser *OutputParser
 	stdinWrapper *StdinWrapper
 }
 
@@ -69,11 +68,10 @@ func New(params Parameters) (*Bds, error) {
 	bds := &Bds{
 		InventoryUpdate: make(chan InventoryUpdate, 100),
 		config:          config,
-		inventory: NewInventoryManager(
+		outputParser: NewOutputParser(
 			params.InventoryReceiveCallback,
 			params.InventoryUpdateCallback,
 		),
-		logs: NewLogMonitor(),
 	}
 
 	// Create server manager with WebAddress for origin tracking
@@ -124,8 +122,8 @@ func New(params Parameters) (*Bds, error) {
 
 				logger.Printf("Server started with PID %d", serverProcess.Process.Pid)
 
-				// Start log monitoring with pipes that also output to stdout/stderr
-				bds.logs.Start(serverProcess, bds, params, stdout, stderr, stdin)
+				// Start output parsing with pipes that also output to stdout/stderr
+				bds.outputParser.Start(serverProcess, bds, params, stdout, stderr, stdin)
 
 				// Start stdin wrapper for interactive command input
 				bds.stdinWrapper = NewStdinWrapper(stdin)
