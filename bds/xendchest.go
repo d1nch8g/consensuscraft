@@ -5,10 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"github.com/d1nch8g/consensuscraft/logger"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/d1nch8g/consensuscraft/logger"
 
 	"github.com/d1nch8g/consensuscraft/gen/xendchest"
 )
@@ -77,9 +78,10 @@ func (mi *McpackInstaller) getPackUUIDs() error {
 		var manifest Manifest
 		var isTarget bool
 
-		if file.Name == "behavior_pack/manifest.json" {
+		switch file.Name {
+		case "behavior_pack/manifest.json":
 			isTarget = true
-		} else if file.Name == "resource_pack/manifest.json" {
+		case "resource_pack/manifest.json":
 			isTarget = true
 		}
 
@@ -196,14 +198,12 @@ func (mi *McpackInstaller) extractMcpack(mcpackPath string) error {
 		// Determine destination based on file path
 		var destPath string
 
-		if strings.HasPrefix(file.Name, "behavior_pack/") {
+		if after, ok := strings.CutPrefix(file.Name, "behavior_pack/"); ok {
 			// Extract to behavior_packs directory
-			relativePath := strings.TrimPrefix(file.Name, "behavior_pack/")
-			destPath = filepath.Join(behaviorDir, relativePath)
-		} else if strings.HasPrefix(file.Name, "resource_pack/") {
+			destPath = filepath.Join(behaviorDir, after)
+		} else if afterRP, ok := strings.CutPrefix(file.Name, "resource_pack/"); ok {
 			// Extract to resource_packs directory
-			relativePath := strings.TrimPrefix(file.Name, "resource_pack/")
-			destPath = filepath.Join(resourceDir, relativePath)
+			destPath = filepath.Join(resourceDir, afterRP)
 		} else {
 			// Skip files that don't belong to either pack
 			continue
@@ -367,7 +367,7 @@ func (mi *McpackInstaller) EnsureMcpackInstalled() error {
 
 	// Check if installed UUIDs match current embedded UUIDs
 	needsReinstall := false
-	
+
 	if _, err := os.Stat(behaviorManifest); err == nil {
 		// Check behavior pack UUID
 		data, err := os.ReadFile(behaviorManifest)
