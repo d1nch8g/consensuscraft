@@ -90,21 +90,11 @@ func (s *Setup) checkCurrentDirectory() string {
 		return serverExecutable
 	}
 
-	// Check for platform-specific executable in server subdirectory
-	serverPath := filepath.Join("server", serverExecutable)
-	if _, err := os.Stat(serverPath); err == nil {
-		return serverPath
-	}
-
 	// Fallback: check for both possible executable names (for cross-platform compatibility)
 	executables := []string{"bedrock_server", "bedrock_server.exe"}
 	for _, exe := range executables {
 		if _, err := os.Stat(exe); err == nil {
 			return exe
-		}
-		serverPath := filepath.Join("server", exe)
-		if _, err := os.Stat(serverPath); err == nil {
-			return serverPath
 		}
 	}
 
