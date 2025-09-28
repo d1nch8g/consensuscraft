@@ -166,11 +166,11 @@ function processInventoryWithShulkers(inventoryData) {
         };
 
         // Handle shulker boxes - create virtual storage
-        if (item.shulker_contents && isShulkerBox(item.typeId)) {
+        if (item.shulkerContents && isShulkerBox(item.typeId)) {
             const shulkerId = generateShulkerId();
 
             // Store shulker contents in world dynamic properties (same as shulker_box.js)
-            world.setDynamicProperty(shulkerId, JSON.stringify(item.shulker_contents));
+            world.setDynamicProperty(shulkerId, JSON.stringify(item.shulkerContents));
 
             // Add shulker ID to lore so it can be retrieved when placed
             if (!formattedItem.lore) formattedItem.lore = [];

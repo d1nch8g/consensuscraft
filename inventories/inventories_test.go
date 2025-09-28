@@ -167,7 +167,7 @@ func TestCleanInventoryFromServer(t *testing.T) {
 				{
 					"typeId": "minecraft:red_shulker_box",
 					"amount": 1,
-					"shulker_contents": [
+					"shulkerContents": [
 						{
 							"typeId": "minecraft:diamond",
 							"amount": 64,
@@ -281,7 +281,7 @@ func TestAddOriginToInventory(t *testing.T) {
 				{
 					"typeId": "minecraft:red_shulker_box",
 					"amount": 1,
-					"shulker_contents": [
+					"shulkerContents": [
 						{
 							"typeId": "minecraft:diamond",
 							"amount": 64

@@ -3,6 +3,7 @@ package database
 import (
 	"encoding/json"
 	"errors"
+	"maps"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -48,15 +49,15 @@ var ErrPlayerNotFound = errors.New("player not found")
 
 // Item represents a Minecraft item in the inventory
 type Item struct {
-	TypeID         string                 `json:"typeId,omitempty"`
-	Amount         int                    `json:"amount,omitempty"`
-	NameTag        string                 `json:"nameTag,omitempty"`
-	Lore           []string               `json:"lore,omitempty"`
-	Enchantments   []map[string]any       `json:"enchantments,omitempty"`
-	Durability     map[string]any         `json:"durability,omitempty"`
-	ShulkerContents []any                 `json:"shulker_contents,omitempty"`
+	TypeID          string           `json:"typeId,omitempty"`
+	Amount          int              `json:"amount,omitempty"`
+	NameTag         string           `json:"nameTag,omitempty"`
+	Lore            []string         `json:"lore,omitempty"`
+	Enchantments    []map[string]any `json:"enchantments,omitempty"`
+	Durability      map[string]any   `json:"durability,omitempty"`
+	ShulkerContents []any            `json:"shulkerContents,omitempty"`
 	// Store any other fields as raw JSON
-	Extra          map[string]any         `json:"-"`
+	Extra map[string]any `json:"-"`
 }
 
 // UnmarshalJSON implements custom unmarshaling for Item
@@ -102,9 +103,9 @@ func (i *Item) UnmarshalJSON(data []byte) error {
 		i.Durability = v
 		delete(raw, "durability")
 	}
-	if v, ok := raw["shulker_contents"].([]any); ok {
+	if v, ok := raw["shulkerContents"].([]any); ok {
 		i.ShulkerContents = v
-		delete(raw, "shulker_contents")
+		delete(raw, "shulkerContents")
 	}
 
 	// Store remaining fields in Extra
@@ -121,9 +122,7 @@ func (i *Item) MarshalJSON() ([]byte, error) {
 	result := make(map[string]any)
 
 	// Add extra fields first
-	for k, v := range i.Extra {
-		result[k] = v
-	}
+	maps.Copy(result, i.Extra)
 
 	// Add known fields (these will override any conflicting extra fields)
 	if i.TypeID != "" {
@@ -145,7 +144,7 @@ func (i *Item) MarshalJSON() ([]byte, error) {
 		result["durability"] = i.Durability
 	}
 	if len(i.ShulkerContents) > 0 {
-		result["shulker_contents"] = i.ShulkerContents
+		result["shulkerContents"] = i.ShulkerContents
 	}
 
 	return json.Marshal(result)
@@ -248,7 +247,7 @@ func (db *DB) Put(player string, inventory []byte, server string) error {
 
 	// Create new inventory entry
 	newEntry := InventoryEntry{
-		Inventory: append([]byte(nil), inventory...),
+		Inventory: append([]byte{}, inventory...),
 		Server:    server,
 		Timestamp: time.Now(),
 	}

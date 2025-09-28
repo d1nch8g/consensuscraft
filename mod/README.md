@@ -96,7 +96,7 @@ The system supports comprehensive item serialization including:
     "amount": 1,
     "nameTag": "§cWeapons Storage",
     "lore": ["§7Contains legendary weapons"],
-    "shulker_contents": [
+    "shulkerContents": [
       {
         "typeId": "minecraft:netherite_sword",
         "amount": 1,
@@ -153,7 +153,7 @@ The system supports comprehensive item serialization including:
     "typeId": "minecraft:blue_shulker_box",
     "amount": 1,
     "nameTag": "§9Potion Storage",
-    "shulker_contents": [
+    "shulkerContents": [
       {
         "typeId": "minecraft:potion",
         "amount": 64,
@@ -326,7 +326,7 @@ The system supports comprehensive item serialization including:
 tag @p add "restore_inv_0_[{\"typeId\":\"minecraft:diamond_sword\",\"amount\":1,\"nameTag\":\"Test Sword\"}]"
 
 # Complex example with multiple items (split across multiple tags due to length limits)
-tag @p add "restore_inv_0_[{\"typeId\":\"minecraft:red_shulker_box\",\"amount\":1,\"shulker_contents\":[{\"typeId\":\"minecraft:diamond\",\"amount\":64},"
+tag @p add "restore_inv_0_[{\"typeId\":\"minecraft:red_shulker_box\",\"amount\":1,\"shulkerContents\":[{\"typeId\":\"minecraft:diamond\",\"amount\":64},"
 tag @p add "restore_inv_1_null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null]}]"
 ```
 
@@ -378,7 +378,7 @@ tag @p add "restore_inv_0_[{\"typeId\":\"minecraft:diamond_sword\",\"amount\":1}
 
 ```bash
 # First chunk
-tag @p add "restore_inv_0_[{\"typeId\":\"minecraft:netherite_sword\",\"amount\":1,\"nameTag\":\"§5Legendary Blade\",\"enchantments\":[{\"type\":\"minecraft:sharpness\",\"level\":5}]},{\"typeId\":\"minecraft:red_shulker_box\",\"amount\":1,\"shulker_contents\":[{\"typeId\":\"minecraft:diamond\",\"amount\":64},"
+tag @p add "restore_inv_0_[{\"typeId\":\"minecraft:netherite_sword\",\"amount\":1,\"nameTag\":\"§5Legendary Blade\",\"enchantments\":[{\"type\":\"minecraft:sharpness\",\"level\":5}]},{\"typeId\":\"minecraft:red_shulker_box\",\"amount\":1,\"shulkerContents\":[{\"typeId\":\"minecraft:diamond\",\"amount\":64},"
 
 # Second chunk
 tag @p add "restore_inv_1_null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null]}]"
@@ -389,8 +389,8 @@ tag @p add "restore_inv_1_null,null,null,null,null,null,null,null,null,null,null
 ```bash
 # For very large inventories with multiple shulker boxes containing many items
 # This would require 7-10 tags depending on content complexity
-tag @p add "restore_inv_0_[{\"typeId\":\"minecraft:red_shulker_box\",\"amount\":1,\"shulker_contents\":[{\"typeId\":\"minecraft:netherite_sword\",\"amount\":1,\"nameTag\":\"§5Void Slayer\",\"enchantments\":[{\"type\":\"minecraft:sharpness\",\"level\":5},{\"type\":\"minecraft:looting\",\"level\":3}]},{\"typeId\":\"minecraft:bow\",\"amount\":1,\"nameTag\":\"§bFrost Bow\",\"enchantments\":[{\"type\":\"minecraft:power\",\"level\":5}]},"
-tag @p add "restore_inv_1_{\"typeId\":\"minecraft:diamond_pickaxe\",\"amount\":1,\"enchantments\":[{\"type\":\"minecraft:efficiency\",\"level\":5}]},null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null]},{\"typeId\":\"minecraft:blue_shulker_box\",\"amount\":1,\"shulker_contents\":[{\"typeId\":\"minecraft:potion\",\"amount\":64},"
+tag @p add "restore_inv_0_[{\"typeId\":\"minecraft:red_shulker_box\",\"amount\":1,\"shulkerContents\":[{\"typeId\":\"minecraft:netherite_sword\",\"amount\":1,\"nameTag\":\"§5Void Slayer\",\"enchantments\":[{\"type\":\"minecraft:sharpness\",\"level\":5},{\"type\":\"minecraft:looting\",\"level\":3}]},{\"typeId\":\"minecraft:bow\",\"amount\":1,\"nameTag\":\"§bFrost Bow\",\"enchantments\":[{\"type\":\"minecraft:power\",\"level\":5}]},"
+tag @p add "restore_inv_1_{\"typeId\":\"minecraft:diamond_pickaxe\",\"amount\":1,\"enchantments\":[{\"type\":\"minecraft:efficiency\",\"level\":5}]},null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null]},{\"typeId\":\"minecraft:blue_shulker_box\",\"amount\":1,\"shulkerContents\":[{\"typeId\":\"minecraft:potion\",\"amount\":64},"
 # ... continue with additional chunks as needed
 ```
 

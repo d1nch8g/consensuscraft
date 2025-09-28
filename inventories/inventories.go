@@ -17,7 +17,7 @@ type ItemData struct {
 	Lore            []string          `json:"lore,omitempty"`
 	Enchantments    []EnchantmentData `json:"enchantments,omitempty"`
 	Durability      *DurabilityData   `json:"durability,omitempty"`
-	ShulkerContents []any             `json:"shulker_contents,omitempty"`
+	ShulkerContents []any             `json:"shulkerContents,omitempty"`
 }
 
 // EnchantmentData represents an enchantment on an item
@@ -108,11 +108,11 @@ func CleanInventoryFromServer(inventoryJSON []byte, serverName string) ([]byte, 
 		}
 
 		// Check nested shulker contents
-		if shulkerContents, exists := itemMap["shulker_contents"]; exists {
+		if shulkerContents, exists := itemMap["shulkerContents"]; exists {
 			if shulkerSlice, ok := shulkerContents.([]any); ok {
 				shulkerModified := cleanShulkerContents(shulkerSlice, serverName)
 				if shulkerModified {
-					itemMap["shulker_contents"] = shulkerSlice
+					itemMap["shulkerContents"] = shulkerSlice
 					items[i] = itemMap
 					modified = true
 				}
@@ -154,10 +154,10 @@ func cleanShulkerContents(shulkerItems []any, serverName string) bool {
 		}
 
 		// Recursively check nested shulker contents
-		if nestedShulkerContents, exists := shulkerItemMap["shulker_contents"]; exists {
+		if nestedShulkerContents, exists := shulkerItemMap["shulkerContents"]; exists {
 			if nestedShulkerSlice, ok := nestedShulkerContents.([]any); ok {
 				if cleanShulkerContents(nestedShulkerSlice, serverName) {
-					shulkerItemMap["shulker_contents"] = nestedShulkerSlice
+					shulkerItemMap["shulkerContents"] = nestedShulkerSlice
 					shulkerItems[i] = shulkerItemMap
 					modified = true
 				}
@@ -320,11 +320,11 @@ func AddOriginToInventory(inventoryJSON []byte, serverName string) ([]byte, bool
 		}
 
 		// Handle nested shulker contents
-		if shulkerContents, exists := itemMap["shulker_contents"]; exists {
+		if shulkerContents, exists := itemMap["shulkerContents"]; exists {
 			if shulkerSlice, ok := shulkerContents.([]any); ok {
 				shulkerModified := addOriginToShulkerContents(shulkerSlice, serverName)
 				if shulkerModified {
-					itemMap["shulker_contents"] = shulkerSlice
+					itemMap["shulkerContents"] = shulkerSlice
 					items[i] = itemMap
 					modified = true
 				}
@@ -386,10 +386,10 @@ func addOriginToShulkerContents(shulkerItems []any, serverName string) bool {
 		}
 
 		// Recursively handle nested shulker contents
-		if nestedShulkerContents, exists := shulkerItemMap["shulker_contents"]; exists {
+		if nestedShulkerContents, exists := shulkerItemMap["shulkerContents"]; exists {
 			if nestedShulkerSlice, ok := nestedShulkerContents.([]any); ok {
 				if addOriginToShulkerContents(nestedShulkerSlice, serverName) {
-					shulkerItemMap["shulker_contents"] = nestedShulkerSlice
+					shulkerItemMap["shulkerContents"] = nestedShulkerSlice
 					shulkerItems[i] = shulkerItemMap
 					modified = true
 				}

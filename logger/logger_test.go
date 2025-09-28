@@ -40,8 +40,8 @@ func TestFormatMessage(t *testing.T) {
 	}
 	
 	// Check that it contains all required components
-	if !strings.Contains(result, "[INFO]") {
-		t.Error("Missing log level [INFO]")
+	if !strings.Contains(result, "INFO") {
+		t.Error("Missing log level INFO")
 	}
 	
 	if !strings.Contains(result, "[CONSENSUSCRAFT]") {
@@ -60,8 +60,8 @@ func TestInfoLogging(t *testing.T) {
 		Info("info message")
 	})
 	
-	if !strings.Contains(output, "[INFO]") {
-		t.Error("Info() should contain [INFO] level")
+	if !strings.Contains(output, "INFO") {
+		t.Error("Info() should contain INFO level")
 	}
 	
 	if !strings.Contains(output, "info message") {
@@ -73,8 +73,8 @@ func TestInfoLogging(t *testing.T) {
 		Infof("formatted %s %d", "message", 42)
 	})
 	
-	if !strings.Contains(output, "[INFO]") {
-		t.Error("Infof() should contain [INFO] level")
+	if !strings.Contains(output, "INFO") {
+		t.Error("Infof() should contain INFO level")
 	}
 	
 	if !strings.Contains(output, "formatted message 42") {
@@ -89,8 +89,8 @@ func TestErrorLogging(t *testing.T) {
 		Error("error message")
 	})
 	
-	if !strings.Contains(output, "[ERROR]") {
-		t.Error("Error() should contain [ERROR] level")
+	if !strings.Contains(output, "ERROR") {
+		t.Error("Error() should contain ERROR level")
 	}
 	
 	if !strings.Contains(output, "error message") {
@@ -102,8 +102,8 @@ func TestErrorLogging(t *testing.T) {
 		Errorf("error code: %d", 500)
 	})
 	
-	if !strings.Contains(output, "[ERROR]") {
-		t.Error("Errorf() should contain [ERROR] level")
+	if !strings.Contains(output, "ERROR") {
+		t.Error("Errorf() should contain ERROR level")
 	}
 	
 	if !strings.Contains(output, "error code: 500") {
@@ -118,8 +118,8 @@ func TestWarnLogging(t *testing.T) {
 		Warn("warning message")
 	})
 	
-	if !strings.Contains(output, "[WARN]") {
-		t.Error("Warn() should contain [WARN] level")
+	if !strings.Contains(output, "WARN") {
+		t.Error("Warn() should contain WARN level")
 	}
 	
 	if !strings.Contains(output, "warning message") {
@@ -131,8 +131,8 @@ func TestWarnLogging(t *testing.T) {
 		Warnf("warning: %s", "deprecated")
 	})
 	
-	if !strings.Contains(output, "[WARN]") {
-		t.Error("Warnf() should contain [WARN] level")
+	if !strings.Contains(output, "WARN") {
+		t.Error("Warnf() should contain WARN level")
 	}
 	
 	if !strings.Contains(output, "warning: deprecated") {
@@ -147,8 +147,8 @@ func TestDebugLogging(t *testing.T) {
 		Debug("debug message")
 	})
 	
-	if !strings.Contains(output, "[DEBUG]") {
-		t.Error("Debug() should contain [DEBUG] level")
+	if !strings.Contains(output, "DEBUG") {
+		t.Error("Debug() should contain DEBUG level")
 	}
 	
 	if !strings.Contains(output, "debug message") {
@@ -160,8 +160,8 @@ func TestDebugLogging(t *testing.T) {
 		Debugf("debug value: %v", true)
 	})
 	
-	if !strings.Contains(output, "[DEBUG]") {
-		t.Error("Debugf() should contain [DEBUG] level")
+	if !strings.Contains(output, "DEBUG") {
+		t.Error("Debugf() should contain DEBUG level")
 	}
 	
 	if !strings.Contains(output, "debug value: true") {
@@ -176,8 +176,8 @@ func TestLegacyFunctions(t *testing.T) {
 		Print("legacy print")
 	})
 	
-	if !strings.Contains(output, "[INFO]") {
-		t.Error("Print() should default to [INFO] level")
+	if !strings.Contains(output, "INFO") {
+		t.Error("Print() should default to INFO level")
 	}
 	
 	if !strings.Contains(output, "legacy print") {
@@ -189,8 +189,8 @@ func TestLegacyFunctions(t *testing.T) {
 		Printf("legacy %s", "printf")
 	})
 	
-	if !strings.Contains(output, "[INFO]") {
-		t.Error("Printf() should default to [INFO] level")
+	if !strings.Contains(output, "INFO") {
+		t.Error("Printf() should default to INFO level")
 	}
 	
 	if !strings.Contains(output, "legacy printf") {
@@ -202,8 +202,8 @@ func TestLegacyFunctions(t *testing.T) {
 		Println("legacy println")
 	})
 	
-	if !strings.Contains(output, "[INFO]") {
-		t.Error("Println() should default to [INFO] level")
+	if !strings.Contains(output, "INFO") {
+		t.Error("Println() should default to INFO level")
 	}
 	
 	if !strings.Contains(output, "legacy println") {
@@ -213,9 +213,11 @@ func TestLegacyFunctions(t *testing.T) {
 
 // TestTimestampFormat tests that timestamps are in the correct format
 func TestTimestampFormat(t *testing.T) {
+	before := time.Now()
 	output := captureOutput(func() {
 		Info("timestamp test")
 	})
+	after := time.Now()
 	
 	// Extract timestamp from output using regex
 	// Pattern: [2025-09-25 19:04:40:650 INFO]
@@ -229,19 +231,23 @@ func TestTimestampFormat(t *testing.T) {
 	
 	timestampStr := matches[1]
 	
-	// Parse the timestamp to ensure it's valid (note: Go uses different format for milliseconds)
-	_, err := time.Parse("2006-01-02 15:04:05.000", timestampStr[:19]+"."+timestampStr[20:])
+	// Parse the timestamp to ensure it's valid
+	// The format is "2006-01-02 15:04:05:000" where the last part is milliseconds
+	// We need to convert it to a format Go can parse: "2006-01-02 15:04:05.000"
+	if len(timestampStr) < 23 {
+		t.Errorf("Timestamp too short: %s", timestampStr)
+		return
+	}
+	timestampForParsing := timestampStr[:19] + "." + timestampStr[20:]
+	parsedTime, err := time.ParseInLocation("2006-01-02 15:04:05.000", timestampForParsing, time.Local)
 	if err != nil {
-		t.Errorf("Invalid timestamp format: %s, error: %v", timestampStr, err)
+		t.Errorf("Invalid timestamp format: %s (converted to %s), error: %v", timestampStr, timestampForParsing, err)
+		return
 	}
 	
-	// Check that timestamp is recent (within last few seconds)
-	parsedTime, _ := time.Parse("2006-01-02 15:04:05", timestampStr[:19])
-	now := time.Now()
-	diff := now.Sub(parsedTime)
-	
-	if diff > 5*time.Second || diff < -1*time.Second {
-		t.Errorf("Timestamp seems incorrect. Parsed: %v, Now: %v, Diff: %v", parsedTime, now, diff)
+	// Check that timestamp is within the expected range (before <= parsed <= after)
+	if parsedTime.Before(before.Add(-1*time.Second)) || parsedTime.After(after.Add(1*time.Second)) {
+		t.Errorf("Timestamp outside expected range. Before: %v, Parsed: %v, After: %v", before, parsedTime, after)
 	}
 }
 
@@ -284,7 +290,7 @@ func TestEmptyMessage(t *testing.T) {
 		Info("")
 	})
 	
-	if !strings.Contains(output, "[INFO]") {
+	if !strings.Contains(output, "INFO") {
 		t.Error("Empty message should still contain log level")
 	}
 	

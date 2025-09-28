@@ -166,7 +166,7 @@ function serializeItem(item) {
                 const contentsData = world.getDynamicProperty(shulkerId);
                 if (contentsData) {
                     const contents = JSON.parse(contentsData);
-                    serialized.shulker_contents = contents;
+                    serialized.shulkerContents = contents;
                 }
             }
         } catch (e) { }
