@@ -34,10 +34,10 @@ type Bds struct {
 	InventoryUpdate chan InventoryUpdate
 
 	// Internal components
-	server      *Server
-	config      *Config
-	inventory   *InventoryManager
-	logs        *LogMonitor
+	server       *Server
+	config       *Config
+	inventory    *InventoryManager
+	logs         *LogMonitor
 	stdinWrapper *StdinWrapper
 }
 

@@ -14,21 +14,23 @@ import (
 
 // Server manages the bedrock server process
 type Server struct {
-	serverPath string
-	config     *Config
-	ctx        context.Context
-	cancel     context.CancelFunc
-	webAddress string
+	serverPath    string
+	config        *Config
+	ctx           context.Context
+	cancel        context.CancelFunc
+	webAddress    string
+	scheduleDelay time.Duration // Configurable delay for scheduled commands
 }
 
 // NewServer creates a new server manager
 func NewServer(serverPath string, config *Config, ctx context.Context, cancel context.CancelFunc, webAddress string) *Server {
 	return &Server{
-		serverPath: serverPath,
-		config:     config,
-		ctx:        ctx,
-		cancel:     cancel,
-		webAddress: webAddress,
+		serverPath:    serverPath,
+		config:        config,
+		ctx:           ctx,
+		cancel:        cancel,
+		webAddress:    webAddress,
+		scheduleDelay: 15 * time.Second, // Default 15 seconds for production
 	}
 }
 
@@ -87,13 +89,13 @@ func (s *Server) Stop(serverProcess *exec.Cmd) {
 }
 
 // scheduleGameruleCommand sends the gamerule showcoordinates command after startup
-func (s *Server) scheduleGameruleCommand(serverProcess *exec.Cmd) {
-	logger.Println("Scheduling gamerule showcoordinates command for 10 seconds after startup")
+func (s *Server) scheduleGameruleCommand(_ *exec.Cmd) {
+	logger.Printf("Scheduling gamerule showcoordinates command for %v after startup", s.scheduleDelay)
 
 	select {
 	case <-s.ctx.Done():
 		return
-	case <-time.After(10 * time.Second):
+	case <-time.After(s.scheduleDelay):
 		// Since we're piping directly to os.Stdin, we need to write to the process stdin
 		// But since we set it to os.Stdin, we can't write to it programmatically
 		// We'll need to modify this approach
@@ -155,12 +157,12 @@ func (s *Server) StartWithPipes() (*exec.Cmd, io.WriteCloser, io.ReadCloser, io.
 
 // scheduleGameruleCommandWithPipe sends the gamerule and scoreboard commands through the stdin pipe
 func (s *Server) scheduleGameruleCommandWithPipe(stdin io.WriteCloser) {
-	logger.Println("Scheduling gamerule showcoordinates and scoreboard commands for 10 seconds after startup")
+	logger.Printf("Scheduling gamerule showcoordinates and scoreboard commands for %v after startup", s.scheduleDelay)
 
 	select {
 	case <-s.ctx.Done():
 		return
-	case <-time.After(10 * time.Second):
+	case <-time.After(s.scheduleDelay):
 		// Send gamerule command
 		gameruleCommand := "gamerule showcoordinates true\n"
 		if _, err := stdin.Write([]byte(gameruleCommand)); err != nil {
@@ -169,8 +171,8 @@ func (s *Server) scheduleGameruleCommandWithPipe(stdin io.WriteCloser) {
 			logger.Println("Successfully sent gamerule showcoordinates true command")
 		}
 
-		// Wait a moment before sending scoreboard commands
-		time.Sleep(1 * time.Second)
+		// Wait a moment before sending scoreboard commands (use shorter delay for tests)
+		time.Sleep(100 * time.Millisecond)
 
 		// Send scoreboard setup commands
 		scoreboardObjectiveCommand := "scoreboard objectives add serverName dummy\n"
@@ -180,8 +182,8 @@ func (s *Server) scheduleGameruleCommandWithPipe(stdin io.WriteCloser) {
 			logger.Println("Successfully sent scoreboard objectives add serverName dummy command")
 		}
 
-		// Wait a moment before setting the server name
-		time.Sleep(500 * time.Millisecond)
+		// Wait a moment before setting the server name (use shorter delay for tests)
+		time.Sleep(50 * time.Millisecond)
 
 		// Set the server name in scoreboard (use WebAddress if available, otherwise use a default)
 		serverName := s.webAddress
