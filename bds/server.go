@@ -63,9 +63,6 @@ func (s *Server) Start() (*exec.Cmd, error) {
 		return nil, fmt.Errorf("failed to start server process: %w", err)
 	}
 
-	// Schedule gamerule command 10 seconds after startup
-	go s.scheduleGameruleCommand(serverProcess)
-
 	return serverProcess, nil
 }
 
@@ -85,21 +82,6 @@ func (s *Server) Stop(serverProcess *exec.Cmd) {
 		if killErr := serverProcess.Process.Kill(); killErr != nil {
 			logger.Printf("Failed to kill server process: %v", killErr)
 		}
-	}
-}
-
-// scheduleGameruleCommand sends the gamerule showcoordinates command after startup
-func (s *Server) scheduleGameruleCommand(_ *exec.Cmd) {
-	logger.Printf("Scheduling gamerule showcoordinates command for %v after startup", s.scheduleDelay)
-
-	select {
-	case <-s.ctx.Done():
-		return
-	case <-time.After(s.scheduleDelay):
-		// Since we're piping directly to os.Stdin, we need to write to the process stdin
-		// But since we set it to os.Stdin, we can't write to it programmatically
-		// We'll need to modify this approach
-		logger.Println("Note - gamerule command should be sent manually or through a different mechanism")
 	}
 }
 

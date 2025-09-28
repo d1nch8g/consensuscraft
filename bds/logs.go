@@ -26,23 +26,40 @@ func NewLogMonitor() *LogMonitor {
 	}
 }
 
-// Start starts monitoring server logs with direct I/O piping
-func (lm *LogMonitor) Start(serverProcess *exec.Cmd, bds *Bds, params Parameters) {
-	// Since we're using direct I/O piping to os.Stdout/Stderr,
-	// we can't intercept the logs for parsing player events.
-	// This is a trade-off for requirement #5 (pipe to process stdin/stdout/stderr)
+// Start starts monitoring server logs with flexible I/O handling
+// It can handle both direct I/O piping and separate pipes for parsing
+func (lm *LogMonitor) Start(serverProcess *exec.Cmd, bds *Bds, params Parameters, pipes ...interface{}) {
+	var stdout, stderr io.ReadCloser
+	var stdin io.WriteCloser
 
-	logger.Println("Log monitoring started with direct I/O piping")
-	logger.Println("Note - Player events cannot be parsed with direct I/O piping")
-}
+	if len(pipes) >= 3 {
+		// Use provided pipes (stdout, stderr, stdin)
+		var ok bool
+		if stdout, ok = pipes[0].(io.ReadCloser); !ok {
+			logger.Println("Invalid stdout pipe type")
+			return
+		}
+		if stderr, ok = pipes[1].(io.ReadCloser); !ok {
+			logger.Println("Invalid stderr pipe type")
+			return
+		}
+		if stdin, ok = pipes[2].(io.WriteCloser); !ok {
+			logger.Println("Invalid stdin pipe type")
+			return
+		}
+		logger.Println("Log monitoring started with separate pipes")
+	} else {
+		// Use direct I/O piping to os.Stdout/Stderr
+		// This is a trade-off for requirement #5 (pipe to process stdin/stdout/stderr)
+		// Player events cannot be parsed with direct I/O piping
+		logger.Println("Log monitoring started with direct I/O piping")
+		logger.Println("Note - Player events cannot be parsed with direct I/O piping")
+		return
+	}
 
-// StartWithPipes starts monitoring server logs with separate pipes for parsing
-func (lm *LogMonitor) StartWithPipes(stdout, stderr io.ReadCloser, stdin io.WriteCloser, bds *Bds, params Parameters) {
 	// Start monitoring stdout and stderr in separate goroutines
 	go lm.monitorServerLogs(stdout, bds, params, stdin)
 	go lm.monitorServerLogs(stderr, bds, params, stdin)
-
-	logger.Println("Log monitoring started with separate pipes")
 }
 
 // monitorServerLogs monitors server output and processes events

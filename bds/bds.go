@@ -125,7 +125,7 @@ func New(params Parameters) (*Bds, error) {
 				logger.Printf("Server started with PID %d", serverProcess.Process.Pid)
 
 				// Start log monitoring with pipes that also output to stdout/stderr
-				bds.logs.StartWithPipes(stdout, stderr, stdin, bds, params)
+				bds.logs.Start(serverProcess, bds, params, stdout, stderr, stdin)
 
 				// Start stdin wrapper for interactive command input
 				bds.stdinWrapper = NewStdinWrapper(stdin)

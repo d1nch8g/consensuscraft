@@ -218,52 +218,6 @@ func TestServer_StartWithPipes(t *testing.T) {
 	})
 }
 
-// TestServer_ScheduleGameruleCommand tests the gamerule command scheduling
-func TestServer_ScheduleGameruleCommand(t *testing.T) {
-	tempDir := t.TempDir()
-	originalDir, _ := os.Getwd()
-	os.Chdir(tempDir)
-	defer os.Chdir(originalDir)
-
-	t.Run("ScheduleGameruleCommandWithContextCancellation", func(t *testing.T) {
-		ctx, cancel := context.WithCancel(context.Background())
-		config := &Config{}
-		serverPath := "mock_server"
-		webAddress := "test-server.example.com"
-
-		server := NewServer(serverPath, config, ctx, cancel, webAddress)
-		server.scheduleDelay = 100 * time.Millisecond // Fast for tests
-
-		// Create a mock process
-		cmd := exec.Command("echo", "test")
-
-		// Cancel context immediately to test cancellation
-		cancel()
-
-		// This should return immediately due to context cancellation
-		server.scheduleGameruleCommand(cmd)
-	})
-
-	t.Run("ScheduleGameruleCommandNormal", func(t *testing.T) {
-		ctx, cancel := context.WithCancel(context.Background())
-		defer cancel()
-
-		config := &Config{}
-		serverPath := "mock_server"
-		webAddress := "test-server.example.com"
-
-		server := NewServer(serverPath, config, ctx, cancel, webAddress)
-		server.scheduleDelay = 100 * time.Millisecond // Fast for tests
-
-		// Create a mock process
-		cmd := exec.Command("echo", "test")
-
-		// This should schedule the command but we can't easily test the actual execution
-		// since it writes to os.Stdin which we can't intercept in this test
-		server.scheduleGameruleCommand(cmd)
-	})
-}
-
 // TestServer_ScheduleGameruleCommandWithPipe tests the gamerule command scheduling with pipes
 func TestServer_ScheduleGameruleCommandWithPipe(t *testing.T) {
 	tempDir := t.TempDir()
@@ -514,7 +468,6 @@ func TestServer_EdgeCases(t *testing.T) {
 		server.Stop(process)
 	})
 }
-
 
 // mockWriteCloser implements io.WriteCloser for testing
 type mockWriteCloser struct {
