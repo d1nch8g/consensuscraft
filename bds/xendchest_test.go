@@ -31,7 +31,7 @@ func TestMcpackInstaller_RealWorld(t *testing.T) {
 		// Test that we can extract UUIDs from the real embedded mcpack
 		err := installer.getPackUUIDs()
 		assert.NoError(t, err)
-		
+
 		// Verify UUIDs are properly extracted (they should be valid UUIDs)
 		assert.NotEmpty(t, installer.behaviorPackUUID)
 		assert.NotEmpty(t, installer.resourcePackUUID)
