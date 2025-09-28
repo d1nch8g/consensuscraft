@@ -15,7 +15,6 @@ import (
 // Server manages the bedrock server process
 type Server struct {
 	serverPath    string
-	config        *Config
 	ctx           context.Context
 	cancel        context.CancelFunc
 	webAddress    string
@@ -23,10 +22,9 @@ type Server struct {
 }
 
 // NewServer creates a new server manager
-func NewServer(serverPath string, config *Config, ctx context.Context, cancel context.CancelFunc, webAddress string) *Server {
+func NewServer(serverPath string, ctx context.Context, cancel context.CancelFunc, webAddress string) *Server {
 	return &Server{
 		serverPath:    serverPath,
-		config:        config,
 		ctx:           ctx,
 		cancel:        cancel,
 		webAddress:    webAddress,
@@ -50,8 +48,7 @@ func (s *Server) Start() (*exec.Cmd, error) {
 		serverProcess.Dir = filepath.Dir(s.serverPath)
 	}
 
-	// Set environment variables from config
-	serverProcess.Env = append(os.Environ(), s.config.GetEnvVars()...)
+	// Use default environment (no BDS-specific environment variables needed)
 
 	// Pipe stdin, stdout, stderr directly to process stdin, stdout, stderr
 	serverProcess.Stdin = os.Stdin
@@ -100,9 +97,6 @@ func (s *Server) StartWithPipes() (*exec.Cmd, io.WriteCloser, io.ReadCloser, io.
 	if filepath.Dir(s.serverPath) != "." {
 		serverProcess.Dir = filepath.Dir(s.serverPath)
 	}
-
-	// Set environment variables from config
-	serverProcess.Env = append(os.Environ(), s.config.GetEnvVars()...)
 
 	// Create pipes for stdin, stdout, stderr
 	stdin, err := serverProcess.StdinPipe()

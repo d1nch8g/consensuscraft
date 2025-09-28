@@ -35,7 +35,6 @@ type Bds struct {
 
 	// Internal components
 	server       *Server
-	config       *Config
 	outputParser *OutputParser
 	stdinWrapper *StdinWrapper
 }
@@ -50,12 +49,6 @@ func New(params Parameters) (*Bds, error) {
 		return nil, fmt.Errorf("start trigger channel cannot be nil")
 	}
 
-	// Load configuration from .env file
-	config, err := LoadConfig()
-	if err != nil {
-		return nil, fmt.Errorf("failed to load configuration: %w", err)
-	}
-
 	// Setup server based on current directory state
 	setup := NewSetup()
 	serverPath, err := setup.EnsureServer()
@@ -67,7 +60,6 @@ func New(params Parameters) (*Bds, error) {
 
 	bds := &Bds{
 		InventoryUpdate: make(chan InventoryUpdate, 100),
-		config:          config,
 		outputParser: NewOutputParser(
 			params.InventoryReceiveCallback,
 			params.InventoryUpdateCallback,
@@ -75,7 +67,7 @@ func New(params Parameters) (*Bds, error) {
 	}
 
 	// Create server manager with WebAddress for origin tracking
-	bds.server = NewServer(serverPath, config, ctx, cancel, params.WebAddress)
+	bds.server = NewServer(serverPath, ctx, cancel, params.WebAddress)
 
 	// Start the management loop in a goroutine
 	go func() {

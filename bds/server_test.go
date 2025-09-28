@@ -20,15 +20,13 @@ func TestNewServer(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		config := &Config{}
 		serverPath := "test_server"
 		webAddress := "test-server.example.com"
 
-		server := NewServer(serverPath, config, ctx, cancel, webAddress)
+		server := NewServer(serverPath, ctx, cancel, webAddress)
 
 		assert.NotNil(t, server)
 		assert.Equal(t, serverPath, server.serverPath)
-		assert.Equal(t, config, server.config)
 		assert.Equal(t, ctx, server.ctx)
 		assert.NotNil(t, server.cancel) // Can't compare cancel functions directly
 		assert.Equal(t, webAddress, server.webAddress)
@@ -38,14 +36,12 @@ func TestNewServer(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		config := &Config{}
 		serverPath := "test_server"
 
-		server := NewServer(serverPath, config, ctx, cancel, "")
+		server := NewServer(serverPath, ctx, cancel, "")
 
 		assert.NotNil(t, server)
 		assert.Equal(t, serverPath, server.serverPath)
-		assert.Equal(t, config, server.config)
 		assert.Equal(t, ctx, server.ctx)
 		assert.NotNil(t, server.cancel) // Can't compare cancel functions directly
 		assert.Equal(t, "", server.webAddress)
@@ -63,7 +59,6 @@ func TestServer_Start(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		config := &Config{}
 		serverPath := "mock_server"
 		webAddress := "test-server.example.com"
 
@@ -71,7 +66,7 @@ func TestServer_Start(t *testing.T) {
 		err := os.WriteFile(serverPath, []byte("#!/bin/bash\necho 'mock server started'\nsleep 1"), 0755)
 		require.NoError(t, err)
 
-		server := NewServer(serverPath, config, ctx, cancel, webAddress)
+		server := NewServer(serverPath, ctx, cancel, webAddress)
 
 		process, err := server.Start()
 		assert.NoError(t, err)
@@ -85,11 +80,10 @@ func TestServer_Start(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		config := &Config{}
 		serverPath := "non_existent_server"
 		webAddress := "test-server.example.com"
 
-		server := NewServer(serverPath, config, ctx, cancel, webAddress)
+		server := NewServer(serverPath, ctx, cancel, webAddress)
 
 		process, err := server.Start()
 		assert.Error(t, err)
@@ -101,7 +95,6 @@ func TestServer_Start(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		config := &Config{}
 		serverPath := "./mock_server"
 		webAddress := "test-server.example.com"
 
@@ -109,7 +102,7 @@ func TestServer_Start(t *testing.T) {
 		err := os.WriteFile("mock_server", []byte("#!/bin/bash\necho 'mock server'"), 0755)
 		require.NoError(t, err)
 
-		server := NewServer(serverPath, config, ctx, cancel, webAddress)
+		server := NewServer(serverPath, ctx, cancel, webAddress)
 
 		process, err := server.Start()
 		assert.NoError(t, err)
@@ -131,11 +124,10 @@ func TestServer_Stop(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		config := &Config{}
 		serverPath := "mock_server"
 		webAddress := "test-server.example.com"
 
-		server := NewServer(serverPath, config, ctx, cancel, webAddress)
+		server := NewServer(serverPath, ctx, cancel, webAddress)
 
 		// Should not panic when stopping nil process
 		assert.NotPanics(t, func() {
@@ -147,11 +139,10 @@ func TestServer_Stop(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		config := &Config{}
 		serverPath := "mock_server"
 		webAddress := "test-server.example.com"
 
-		server := NewServer(serverPath, config, ctx, cancel, webAddress)
+		server := NewServer(serverPath, ctx, cancel, webAddress)
 
 		// Create a command but don't start it
 		cmd := exec.Command("echo", "test")
@@ -174,7 +165,6 @@ func TestServer_StartWithPipes(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		config := &Config{}
 		serverPath := "mock_server"
 		webAddress := "test-server.example.com"
 
@@ -182,7 +172,7 @@ func TestServer_StartWithPipes(t *testing.T) {
 		err := os.WriteFile(serverPath, []byte("#!/bin/bash\necho 'mock server with pipes'\nsleep 1"), 0755)
 		require.NoError(t, err)
 
-		server := NewServer(serverPath, config, ctx, cancel, webAddress)
+		server := NewServer(serverPath, ctx, cancel, webAddress)
 
 		process, stdin, stdout, stderr, err := server.StartWithPipes()
 		assert.NoError(t, err)
@@ -202,11 +192,10 @@ func TestServer_StartWithPipes(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		config := &Config{}
 		serverPath := "non_existent_server"
 		webAddress := "test-server.example.com"
 
-		server := NewServer(serverPath, config, ctx, cancel, webAddress)
+		server := NewServer(serverPath, ctx, cancel, webAddress)
 
 		process, stdin, stdout, stderr, err := server.StartWithPipes()
 		assert.Error(t, err)
@@ -229,11 +218,10 @@ func TestServer_ScheduleGameruleCommandWithPipe(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		config := &Config{}
 		serverPath := "mock_server"
 		webAddress := "test-server.example.com"
 
-		server := NewServer(serverPath, config, ctx, cancel, webAddress)
+		server := NewServer(serverPath, ctx, cancel, webAddress)
 		server.scheduleDelay = 100 * time.Millisecond // Fast for tests
 
 		// Create a mock stdin pipe
@@ -257,11 +245,11 @@ func TestServer_ScheduleGameruleCommandWithPipe(t *testing.T) {
 
 	t.Run("ScheduleGameruleCommandWithPipeContextCancellation", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
-		config := &Config{}
+
 		serverPath := "mock_server"
 		webAddress := "test-server.example.com"
 
-		server := NewServer(serverPath, config, ctx, cancel, webAddress)
+		server := NewServer(serverPath, ctx, cancel, webAddress)
 		server.scheduleDelay = 100 * time.Millisecond // Fast for tests
 
 		// Create a mock stdin pipe
@@ -280,11 +268,10 @@ func TestServer_ScheduleGameruleCommandWithPipe(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		config := &Config{}
 		serverPath := "mock_server"
 		webAddress := "test-server.example.com"
 
-		server := NewServer(serverPath, config, ctx, cancel, webAddress)
+		server := NewServer(serverPath, ctx, cancel, webAddress)
 		server.scheduleDelay = 100 * time.Millisecond // Longer delay for reliable testing
 
 		// Create a mock stdin pipe that captures written data
@@ -308,11 +295,10 @@ func TestServer_ScheduleGameruleCommandWithPipe(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		config := &Config{}
 		serverPath := "mock_server"
 		webAddress := "" // Empty web address
 
-		server := NewServer(serverPath, config, ctx, cancel, webAddress)
+		server := NewServer(serverPath, ctx, cancel, webAddress)
 		server.scheduleDelay = 100 * time.Millisecond // Longer delay for reliable testing
 
 		// Create a mock stdin pipe that captures written data
@@ -344,7 +330,6 @@ func TestServer_Integration(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		config := &Config{}
 		serverPath := "mock_server"
 		webAddress := "test-server.example.com"
 
@@ -352,7 +337,7 @@ func TestServer_Integration(t *testing.T) {
 		err := os.WriteFile(serverPath, []byte("#!/bin/bash\necho 'server started'\nexit 0"), 0755)
 		require.NoError(t, err)
 
-		server := NewServer(serverPath, config, ctx, cancel, webAddress)
+		server := NewServer(serverPath, ctx, cancel, webAddress)
 
 		// Test regular start
 		process, err := server.Start()
@@ -372,7 +357,6 @@ func TestServer_Integration(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		config := &Config{}
 		serverPath := "mock_server"
 		webAddress := "test-server.example.com"
 
@@ -380,7 +364,7 @@ func TestServer_Integration(t *testing.T) {
 		err := os.WriteFile(serverPath, []byte("#!/bin/bash\necho 'server with pipes started'\nsleep 0.5\necho 'server exiting'"), 0755)
 		require.NoError(t, err)
 
-		server := NewServer(serverPath, config, ctx, cancel, webAddress)
+		server := NewServer(serverPath, ctx, cancel, webAddress)
 
 		// Test start with pipes
 		process, stdin, stdout, stderr, err := server.StartWithPipes()
@@ -416,7 +400,6 @@ func TestServer_EdgeCases(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		config := &Config{}
 		serverPath := "subdir/mock_server"
 		webAddress := "test-server.example.com"
 
@@ -426,7 +409,7 @@ func TestServer_EdgeCases(t *testing.T) {
 		err = os.WriteFile(serverPath, []byte("#!/bin/bash\necho 'server'"), 0755)
 		require.NoError(t, err)
 
-		server := NewServer(serverPath, config, ctx, cancel, webAddress)
+		server := NewServer(serverPath, ctx, cancel, webAddress)
 
 		process, err := server.Start()
 		assert.NoError(t, err)
@@ -440,7 +423,6 @@ func TestServer_EdgeCases(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		config := &Config{}
 		serverPath := "mock_server"
 		webAddress := "test-server.example.com"
 
@@ -448,7 +430,7 @@ func TestServer_EdgeCases(t *testing.T) {
 		err := os.WriteFile(serverPath, []byte("#!/bin/bash\necho 'server'"), 0755)
 		require.NoError(t, err)
 
-		server := NewServer(serverPath, config, ctx, cancel, webAddress)
+		server := NewServer(serverPath, ctx, cancel, webAddress)
 
 		// Test that scheduling doesn't panic even if stdin write fails
 		// We can't easily simulate write failure in this test, but we can verify
