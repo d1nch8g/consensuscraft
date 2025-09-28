@@ -12,7 +12,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/d1nch8g/consensuscraft/gen/pb"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/iterator"
 	"github.com/syndtr/goleveldb/leveldb/util"
@@ -46,6 +45,44 @@ type DB struct {
 
 var ErrClosed = errors.New("database is closed")
 var ErrPlayerNotFound = errors.New("player not found")
+
+// DatabaseEntry represents a native database entry for streaming
+type DatabaseEntry struct {
+	Key   []byte
+	Value []byte
+}
+
+// ValidationError represents an item validation error
+type ValidationError struct {
+	Player    string `json:"player"`
+	Server    string `json:"server"`
+	ItemIndex int    `json:"item_index"`
+	ErrorType string `json:"error_type"`
+	Message   string `json:"message"`
+}
+
+// VirtualItem represents an item in virtual server inventory
+type VirtualItem struct {
+	Item         json.RawMessage `json:"item"`
+	SourceServer string          `json:"source_server"`
+	Timestamp    time.Time       `json:"timestamp"`
+	PlayerOrigin string          `json:"player_origin"`
+}
+
+// VirtualServerInventory represents items available to a server from other servers
+type VirtualServerInventory struct {
+	Server         string                   `json:"server"`
+	AvailableItems []VirtualItem            `json:"available_items"`
+	SourceServers  map[string][]VirtualItem `json:"source_servers"`
+	LastUpdated    time.Time                `json:"last_updated"`
+}
+
+// ServerState tracks per-server statistics for a player
+type ServerState struct {
+	LastUpdate    time.Time `json:"last_update"`
+	ItemsProduced int       `json:"items_produced"`
+	ItemsBorrowed int       `json:"items_borrowed"`
+}
 
 // Item represents a Minecraft item in the inventory
 type Item struct {
@@ -156,10 +193,10 @@ func (i *Item) hasOriginFromServer(server string) bool {
 		return false
 	}
 
-	// Check for origin lore pattern: "Origin: server timestamp"
-	originPattern := regexp.MustCompile(`^Origin:\s*(.+?)\s+\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}`)
+	// Check for origin lore pattern: "Origin: server" (simple pattern)
+	originPattern := regexp.MustCompile(`^Origin:\s+(.+)$`)
 	for _, lore := range i.Lore {
-		if matches := originPattern.FindStringSubmatch(lore); len(matches) > 1 {
+		if matches := originPattern.FindStringSubmatch(lore); len(matches) == 2 {
 			originServer := strings.TrimSpace(matches[1])
 			if originServer == server {
 				return true
@@ -217,6 +254,46 @@ func (i *Item) cleanShulkerContents(server string) bool {
 	}
 
 	return modified
+}
+
+// extractValidItemsFromShulker extracts items from shulker contents that don't originate from the specified server
+func extractValidItemsFromShulker(shulkerContents []any, server string) []any {
+	var validItems []any
+
+	for _, content := range shulkerContents {
+		if content == nil {
+			continue
+		}
+
+		// Try to parse as Item
+		contentBytes, err := json.Marshal(content)
+		if err != nil {
+			continue
+		}
+
+		var item Item
+		if err := json.Unmarshal(contentBytes, &item); err != nil {
+			continue
+		}
+
+		// Check if this item should be kept (doesn't have wrong origin)
+		if !item.hasOriginFromServer(server) {
+			// Recursively extract valid items from nested shulker boxes
+			if len(item.ShulkerContents) > 0 {
+				// Create a new shulker box with only valid contents
+				validShulkerContents := extractValidItemsFromShulker(item.ShulkerContents, server)
+				if len(validShulkerContents) > 0 {
+					item.ShulkerContents = validShulkerContents
+					validItems = append(validItems, item)
+				}
+			} else {
+				// Regular item without shulker contents
+				validItems = append(validItems, item)
+			}
+		}
+	}
+
+	return validItems
 }
 
 func New(path string) (*DB, error) {
@@ -488,13 +565,27 @@ func (db *DB) cleanInventoryContents(inventoryData []byte, server string) ([]byt
 
 		// Check if this item should be removed
 		if item.hasOriginFromServer(server) {
-			// Remove this item (replace with null)
-			cleanedInventory = append(cleanedInventory, nil)
-			modified = true
+			// For shulker boxes, extract valid contents before removing the box
+			if len(item.ShulkerContents) > 0 {
+				// Extract all valid items from the shulker box
+				extractedItems := extractValidItemsFromShulker(item.ShulkerContents, server)
+				if len(extractedItems) > 0 {
+					// Add the extracted valid items to the inventory
+					cleanedInventory = append(cleanedInventory, extractedItems...)
+					modified = true
+				}
+				// Remove the shulker box with wrong origin (replace with null)
+				cleanedInventory = append(cleanedInventory, nil)
+				modified = true
+			} else {
+				// Remove non-shulker items with wrong origin (replace with null)
+				cleanedInventory = append(cleanedInventory, nil)
+				modified = true
+			}
 			continue
 		}
 
-		// Clean shulker contents recursively
+		// Clean shulker contents recursively (for items that don't have wrong origin themselves)
 		if item.cleanShulkerContents(server) {
 			modified = true
 		}
@@ -542,8 +633,8 @@ func (db *DB) GetPlayerInventories(player string) ([]InventoryEntry, error) {
 	return playerInv.Entries, nil
 }
 
-func (db *DB) StreamAll() <-chan *pb.DatabaseEntry {
-	ch := make(chan *pb.DatabaseEntry, 100)
+func (db *DB) StreamAll() <-chan *DatabaseEntry {
+	ch := make(chan *DatabaseEntry, 100)
 
 	go func() {
 		defer close(ch)
@@ -568,7 +659,7 @@ func (db *DB) StreamAll() <-chan *pb.DatabaseEntry {
 			value := append([]byte(nil), iter.Value()...)
 
 			select {
-			case ch <- &pb.DatabaseEntry{
+			case ch <- &DatabaseEntry{
 				Key:   key,
 				Value: value,
 			}:
@@ -589,7 +680,7 @@ func (db *DB) StreamAll() <-chan *pb.DatabaseEntry {
 				if change.deleted {
 					// Send deletion marker (empty value)
 					select {
-					case ch <- &pb.DatabaseEntry{
+					case ch <- &DatabaseEntry{
 						Key:   []byte(change.player),
 						Value: nil,
 					}:
@@ -602,7 +693,7 @@ func (db *DB) StreamAll() <-chan *pb.DatabaseEntry {
 					data, err := db.leveldb.Get(key, nil)
 					if err == nil {
 						select {
-						case ch <- &pb.DatabaseEntry{
+						case ch <- &DatabaseEntry{
 							Key:   key,
 							Value: data,
 						}:

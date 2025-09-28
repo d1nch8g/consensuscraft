@@ -351,7 +351,7 @@ func TestDB_StreamAll_ConcurrentWrites(t *testing.T) {
 	defer db.Close()
 
 	// Add initial data
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		player := "initial-player-" + string(rune('0'+i))
 		inventory := []byte("inventory-" + string(rune('0'+i)))
 		err := db.Put(player, inventory, "server1")
@@ -488,4 +488,620 @@ func TestDB_DeleteComplexScenario(t *testing.T) {
 	assert.Len(t, entries, 1)
 	assert.Equal(t, []byte("inv2"), entries[0].Inventory)
 	assert.Equal(t, "server2", entries[0].Server)
+}
+
+func TestDB_DeleteWithItemOriginCleaning(t *testing.T) {
+	db, err := New(t.TempDir())
+	require.NoError(t, err)
+	defer db.Close()
+
+	// Create inventory with mixed items from different servers
+	inventoryWithMixedItems := `[
+		{
+			"typeId": "minecraft:diamond_sword",
+			"amount": 1,
+			"lore": ["Origin: server1"]
+		},
+		{
+			"typeId": "minecraft:bread",
+			"amount": 64,
+			"lore": ["Origin: server2"]
+		},
+		{
+			"typeId": "minecraft:iron_ingot",
+			"amount": 32,
+			"lore": ["Origin: server1"]
+		},
+		null,
+		{
+			"typeId": "minecraft:shulker_box",
+			"amount": 1,
+			"lore": ["Origin: server2"],
+			"shulkerContents": [
+				{
+					"typeId": "minecraft:diamond",
+					"amount": 10,
+					"lore": ["Origin: server1"]
+				},
+				{
+					"typeId": "minecraft:gold_ingot",
+					"amount": 20,
+					"lore": ["Origin: server2"]
+				}
+			]
+		}
+	]`
+
+	// Put this inventory from server2 (but it contains items from server1)
+	err = db.Put("player1", []byte(inventoryWithMixedItems), "server2")
+	require.NoError(t, err)
+
+	// Delete server1 - should clean items with server1 origin from all inventories
+	err = db.Delete("server1", false)
+	require.NoError(t, err)
+
+	// Get the cleaned inventory
+	cleanedInv, err := db.Get("player1")
+	require.NoError(t, err)
+
+	// Verify that server1 items were removed
+	cleanedStr := string(cleanedInv)
+	assert.NotContains(t, cleanedStr, "Origin: server1")
+	assert.Contains(t, cleanedStr, "Origin: server2")
+
+	// Should still contain server2 items
+	assert.Contains(t, cleanedStr, "minecraft:bread")
+	assert.Contains(t, cleanedStr, "minecraft:gold_ingot")
+
+	// Should not contain server1 items
+	assert.NotContains(t, cleanedStr, "minecraft:diamond_sword")
+	assert.NotContains(t, cleanedStr, "minecraft:iron_ingot")
+	assert.NotContains(t, cleanedStr, "minecraft:diamond")
+}
+
+func TestDB_CrossServerItemValidation(t *testing.T) {
+	// This test demonstrates how validation would catch servers producing items from other servers
+	// Note: The actual validation happens at the application level using the validator
+	validator := NewItemValidator()
+
+	t.Run("server producing items with wrong origin", func(t *testing.T) {
+		// Server1 tries to produce an item with server2's origin
+		maliciousInventory := `[
+			{
+				"typeId": "minecraft:diamond_sword",
+				"amount": 1,
+				"lore": ["Origin: server2"]
+			}
+		]`
+
+		// Validate this inventory as if it came from server1
+		errors := validator.ValidateInventory([]byte(maliciousInventory), "server1", "player1")
+
+		// Should detect wrong origin
+		assert.Len(t, errors, 1)
+		assert.Equal(t, "wrong_origin", errors[0].ErrorType)
+		assert.Contains(t, errors[0].Message, "server2")
+		assert.Contains(t, errors[0].Message, "server1")
+	})
+
+	t.Run("server producing items without origin", func(t *testing.T) {
+		// Server tries to produce items without proper origin
+		maliciousInventory := `[
+			{
+				"typeId": "minecraft:diamond_sword",
+				"amount": 1
+			}
+		]`
+
+		// Validate this inventory
+		errors := validator.ValidateInventory([]byte(maliciousInventory), "server1", "player1")
+
+		// Should detect missing origin
+		assert.Len(t, errors, 1)
+		assert.Equal(t, "missing_origin", errors[0].ErrorType)
+	})
+
+	t.Run("valid server producing own items", func(t *testing.T) {
+		// Server1 produces items with correct origin
+		validInventory := `[
+			{
+				"typeId": "minecraft:diamond_sword",
+				"amount": 1,
+				"lore": ["Origin: server1"]
+			},
+			{
+				"typeId": "minecraft:bread",
+				"amount": 64,
+				"lore": ["Origin: server1"]
+			}
+		]`
+
+		// Validate this inventory
+		errors := validator.ValidateInventory([]byte(validInventory), "server1", "player1")
+
+		// Should pass validation
+		assert.Len(t, errors, 0)
+	})
+}
+
+func TestDB_ServerDeletionWithNestedItems(t *testing.T) {
+	db, err := New(t.TempDir())
+	require.NoError(t, err)
+	defer db.Close()
+
+	// Create complex inventory with nested shulker boxes containing items from different servers
+	complexInventory := `[
+		{
+			"typeId": "minecraft:shulker_box",
+			"amount": 1,
+			"lore": ["Origin: server1"],
+			"shulkerContents": [
+				{
+					"typeId": "minecraft:diamond",
+					"amount": 10,
+					"lore": ["Origin: server1"]
+				},
+				{
+					"typeId": "minecraft:gold_ingot",
+					"amount": 20,
+					"lore": ["Origin: server2"]
+				},
+				{
+					"typeId": "minecraft:shulker_box",
+					"amount": 1,
+					"lore": ["Origin: server2"],
+					"shulkerContents": [
+						{
+							"typeId": "minecraft:iron_ingot",
+							"amount": 30,
+							"lore": ["Origin: server1"]
+						},
+						{
+							"typeId": "minecraft:coal",
+							"amount": 40,
+							"lore": ["Origin: server3"]
+						}
+					]
+				}
+			]
+		},
+		{
+			"typeId": "minecraft:bread",
+			"amount": 64,
+			"lore": ["Origin: server2"]
+		}
+	]`
+
+	// Store this inventory from server2 (so it won't be deleted when we delete server1)
+	err = db.Put("player1", []byte(complexInventory), "server2")
+	require.NoError(t, err)
+
+	// Delete server1 - should remove all items with server1 origin, including nested ones
+	err = db.Delete("server1", false)
+	require.NoError(t, err)
+
+	// Get the cleaned inventory
+	cleanedInv, err := db.Get("player1")
+	require.NoError(t, err)
+
+	cleanedStr := string(cleanedInv)
+
+	// Should not contain any server1 items
+	assert.NotContains(t, cleanedStr, "Origin: server1")
+
+	// Should still contain server2 and server3 items
+	assert.Contains(t, cleanedStr, "Origin: server2")
+	assert.Contains(t, cleanedStr, "Origin: server3")
+
+	// Verify specific items
+	assert.Contains(t, cleanedStr, "minecraft:bread")      // server2 item
+	assert.Contains(t, cleanedStr, "minecraft:coal")       // server3 item in nested shulker
+	assert.Contains(t, cleanedStr, "minecraft:gold_ingot") // server2 item
+
+	// Should not contain server1 items
+	assert.NotContains(t, cleanedStr, "minecraft:diamond")    // server1 item
+	assert.NotContains(t, cleanedStr, "minecraft:iron_ingot") // server1 item in nested shulker
+}
+
+func TestDB_MultiplePlayerServerDeletion(t *testing.T) {
+	db, err := New(t.TempDir())
+	require.NoError(t, err)
+	defer db.Close()
+
+	// Create inventories for multiple players with items from server1
+	player1Inv := `[
+		{
+			"typeId": "minecraft:diamond_sword",
+			"amount": 1,
+			"lore": ["Origin: server1"]
+		},
+		{
+			"typeId": "minecraft:bread",
+			"amount": 64,
+			"lore": ["Origin: server2"]
+		}
+	]`
+
+	player2Inv := `[
+		{
+			"typeId": "minecraft:iron_sword",
+			"amount": 1,
+			"lore": ["Origin: server1"]
+		}
+	]`
+
+	player3Inv := `[
+		{
+			"typeId": "minecraft:gold_ingot",
+			"amount": 32,
+			"lore": ["Origin: server2"]
+		}
+	]`
+
+	// Store inventories
+	err = db.Put("player1", []byte(player1Inv), "server2")
+	require.NoError(t, err)
+
+	err = db.Put("player2", []byte(player2Inv), "server1")
+	require.NoError(t, err)
+
+	err = db.Put("player3", []byte(player3Inv), "server2")
+	require.NoError(t, err)
+
+	// Delete server1 - should clean all inventories
+	err = db.Delete("server1", false)
+	require.NoError(t, err)
+
+	// Check player1 - should have server1 items removed but keep server2 items
+	player1Result, err := db.Get("player1")
+	require.NoError(t, err)
+	player1Str := string(player1Result)
+	assert.NotContains(t, player1Str, "Origin: server1")
+	assert.Contains(t, player1Str, "Origin: server2")
+	assert.Contains(t, player1Str, "minecraft:bread")
+	assert.NotContains(t, player1Str, "minecraft:diamond_sword")
+
+	// Check player2 - should be deleted entirely (only had server1 items)
+	_, err = db.Get("player2")
+	assert.Equal(t, ErrPlayerNotFound, err)
+
+	// Check player3 - should be unchanged (no server1 items)
+	player3Result, err := db.Get("player3")
+	require.NoError(t, err)
+	player3Str := string(player3Result)
+	assert.Contains(t, player3Str, "Origin: server2")
+	assert.Contains(t, player3Str, "minecraft:gold_ingot")
+}
+
+func TestDB_ServerDeletionPreservesOtherServers(t *testing.T) {
+	db, err := New(t.TempDir())
+	require.NoError(t, err)
+	defer db.Close()
+
+	player := "testplayer"
+
+	// Add inventories from multiple servers over time
+	server1Inv := `[{"typeId": "minecraft:diamond", "amount": 10, "lore": ["Origin: server1"]}]`
+	server2Inv := `[{"typeId": "minecraft:iron_ingot", "amount": 20, "lore": ["Origin: server2"]}]`
+	server3Inv := `[{"typeId": "minecraft:gold_ingot", "amount": 30, "lore": ["Origin: server3"]}]`
+
+	err = db.Put(player, []byte(server1Inv), "server1")
+	require.NoError(t, err)
+
+	time.Sleep(1 * time.Millisecond)
+
+	err = db.Put(player, []byte(server2Inv), "server2")
+	require.NoError(t, err)
+
+	time.Sleep(1 * time.Millisecond)
+
+	err = db.Put(player, []byte(server3Inv), "server3")
+	require.NoError(t, err)
+
+	// Verify we have all 3 entries
+	entries, err := db.GetPlayerInventories(player)
+	require.NoError(t, err)
+	assert.Len(t, entries, 3)
+
+	// Delete server2
+	err = db.Delete("server2", false)
+	require.NoError(t, err)
+
+	// Should still have server1 and server3 entries
+	entries, err = db.GetPlayerInventories(player)
+	require.NoError(t, err)
+	assert.Len(t, entries, 2)
+
+	// Verify correct servers remain
+	servers := make(map[string]bool)
+	for _, entry := range entries {
+		servers[entry.Server] = true
+	}
+	assert.True(t, servers["server1"])
+	assert.True(t, servers["server3"])
+	assert.False(t, servers["server2"])
+
+	// Latest inventory should be from server3
+	latestInv, err := db.Get(player)
+	require.NoError(t, err)
+	assert.Contains(t, string(latestInv), "Origin: server3")
+	assert.Contains(t, string(latestInv), "minecraft:gold_ingot")
+}
+
+func TestDB_VirtualInventoryScenario_ItemsDisappearToVirtualStorage(t *testing.T) {
+	db, err := New(t.TempDir())
+	require.NoError(t, err)
+	defer db.Close()
+
+	player := "testplayer"
+
+	// Scenario 1: Player produces items with server1 origin
+	initialInventory := `[
+		{
+			"typeId": "minecraft:diamond_sword",
+			"amount": 1,
+			"lore": ["Origin: server1"]
+		},
+		{
+			"typeId": "minecraft:diamond",
+			"amount": 64,
+			"lore": ["Origin: server1"]
+		}
+	]`
+
+	// Store initial inventory from server1
+	err = db.Put(player, []byte(initialInventory), "server1")
+	require.NoError(t, err)
+
+	// Scenario: Player updates ender chest on server2, items from server1 disappear
+	// This simulates the player moving items from their ender chest to another location
+	// Items with server1 origin should be moved to server2's virtual inventory
+	updatedInventory := `[
+		{
+			"typeId": "minecraft:bread",
+			"amount": 32,
+			"lore": ["Origin: server2"]
+		}
+	]`
+
+	// Store updated inventory from server2 (items from server1 are gone)
+	err = db.Put(player, []byte(updatedInventory), "server2")
+	require.NoError(t, err)
+
+	// Get the current inventory - should only contain server2 items
+	currentInv, err := db.Get(player)
+	require.NoError(t, err)
+	currentStr := string(currentInv)
+
+	// Should contain server2 items
+	assert.Contains(t, currentStr, "Origin: server2")
+	assert.Contains(t, currentStr, "minecraft:bread")
+
+	// Should not contain server1 items (they disappeared)
+	assert.NotContains(t, currentStr, "Origin: server1")
+	assert.NotContains(t, currentStr, "minecraft:diamond_sword")
+	assert.NotContains(t, currentStr, "minecraft:diamond")
+
+	// In a real implementation, the disappeared server1 items would be tracked
+	// in server2's virtual inventory for potential future validation
+	// This test demonstrates the scenario where items disappear from ender chest
+}
+
+func TestDB_VirtualInventoryScenario_ItemsReappearFromOtherPlayer(t *testing.T) {
+	db, err := New(t.TempDir())
+	require.NoError(t, err)
+	defer db.Close()
+
+	player1 := "player1"
+	player2 := "player2"
+
+	// Scenario: Player1 had items from server1 that disappeared (moved to virtual storage)
+	// Now player2 appears with those same items from server1
+
+	// Player1's current inventory (server1 items disappeared)
+	player1Inventory := `[
+		{
+			"typeId": "minecraft:bread",
+			"amount": 32,
+			"lore": ["Origin: server2"]
+		}
+	]`
+
+	err = db.Put(player1, []byte(player1Inventory), "server2")
+	require.NoError(t, err)
+
+	// Player2 appears with the "missing" server1 items
+	player2Inventory := `[
+		{
+			"typeId": "minecraft:diamond_sword",
+			"amount": 1,
+			"lore": ["Origin: server1"]
+		},
+		{
+			"typeId": "minecraft:diamond",
+			"amount": 64,
+			"lore": ["Origin: server1"]
+		}
+	]`
+
+	err = db.Put(player2, []byte(player2Inventory), "server1")
+	require.NoError(t, err)
+
+	// Verify both players have their respective inventories
+	player1Inv, err := db.Get(player1)
+	require.NoError(t, err)
+	player1Str := string(player1Inv)
+	assert.Contains(t, player1Str, "Origin: server2")
+	assert.NotContains(t, player1Str, "Origin: server1")
+
+	player2Inv, err := db.Get(player2)
+	require.NoError(t, err)
+	player2Str := string(player2Inv)
+	assert.Contains(t, player2Str, "Origin: server1")
+	assert.NotContains(t, player2Str, "Origin: server2")
+
+	// In a real implementation, when player2 appears with server1 items,
+	// those items would be removed from server2's virtual inventory
+	// This prevents the same items from being "spent" multiple times
+}
+
+func TestDB_CrossServerProductionValidation(t *testing.T) {
+	db, err := New(t.TempDir())
+	require.NoError(t, err)
+	defer db.Close()
+
+	// Scenario 3: Server tries to produce items with wrong origin - should be caught by validation
+	// This test demonstrates that the database itself doesn't prevent this,
+	// but the validation layer should catch it
+
+	player := "testplayer"
+
+	// Server2 tries to produce items with server1's origin (malicious behavior)
+	maliciousInventory := `[
+		{
+			"typeId": "minecraft:netherite_sword",
+			"amount": 1,
+			"lore": ["Origin: server1"]
+		},
+		{
+			"typeId": "minecraft:netherite_ingot",
+			"amount": 16,
+			"lore": ["Origin: server1"]
+		}
+	]`
+
+	// The database Put operation itself will succeed (it just stores data)
+	// But in a real system, this should be caught by the validation layer
+	err = db.Put(player, []byte(maliciousInventory), "server2")
+	require.NoError(t, err, "Database Put should succeed - validation happens at application level")
+
+	// Verify the data was stored
+	storedInv, err := db.Get(player)
+	require.NoError(t, err)
+	storedStr := string(storedInv)
+
+	// The malicious items are stored, but in a real system they would be invalid
+	assert.Contains(t, storedStr, "Origin: server1")
+	assert.Contains(t, storedStr, "minecraft:netherite_sword")
+
+	// This demonstrates why the validation layer is crucial - it prevents
+	// servers from producing items with wrong origins
+}
+
+func TestDB_ComplexCrossServerScenario(t *testing.T) {
+	db, err := New(t.TempDir())
+	require.NoError(t, err)
+	defer db.Close()
+
+	// Complex scenario combining all the elements:
+	// 1. Items disappear from one server
+	// 2. Same items appear on another player
+	// 3. Validation prevents wrong origin production
+
+	player1 := "player1"
+	player2 := "player2"
+
+	// Phase 1: Player1 has items from server1
+	phase1Inventory := `[
+		{
+			"typeId": "minecraft:diamond_pickaxe",
+			"amount": 1,
+			"lore": ["Origin: server1"]
+		},
+		{
+			"typeId": "minecraft:diamond",
+			"amount": 32,
+			"lore": ["Origin: server1"]
+		}
+	]`
+
+	err = db.Put(player1, []byte(phase1Inventory), "server1")
+	require.NoError(t, err)
+
+	// Phase 2: Player1 updates on server2, items disappear
+	phase2Inventory := `[
+		{
+			"typeId": "minecraft:stone",
+			"amount": 64,
+			"lore": ["Origin: server2"]
+		}
+	]`
+
+	err = db.Put(player1, []byte(phase2Inventory), "server2")
+	require.NoError(t, err)
+
+	// Phase 3: Player2 appears with the "missing" server1 items
+	player2Inventory := `[
+		{
+			"typeId": "minecraft:diamond_pickaxe",
+			"amount": 1,
+			"lore": ["Origin: server1"]
+		},
+		{
+			"typeId": "minecraft:diamond",
+			"amount": 32,
+			"lore": ["Origin: server1"]
+		}
+	]`
+
+	err = db.Put(player2, []byte(player2Inventory), "server1")
+	require.NoError(t, err)
+
+	// Verify final state
+	player1Final, err := db.Get(player1)
+	require.NoError(t, err)
+	player1Str := string(player1Final)
+	assert.Contains(t, player1Str, "Origin: server2")
+	assert.NotContains(t, player1Str, "Origin: server1")
+
+	player2Final, err := db.Get(player2)
+	require.NoError(t, err)
+	player2Str := string(player2Final)
+	assert.Contains(t, player2Str, "Origin: server1")
+	assert.NotContains(t, player2Str, "Origin: server2")
+
+	// This complex scenario demonstrates the need for:
+	// 1. Virtual inventory tracking when items disappear
+	// 2. Cross-server item validation
+	// 3. Prevention of item duplication across servers
+}
+
+func TestDB_ServerVirtualInventoryTracking(t *testing.T) {
+	db, err := New(t.TempDir())
+	require.NoError(t, err)
+	defer db.Close()
+
+	// This test demonstrates the concept of virtual server inventory tracking
+	// In a real implementation, the database would track which items are available
+	// to each server from other servers
+
+	player := "testplayer"
+
+	// Server1 produces items
+	server1Inventory := `[
+		{
+			"typeId": "minecraft:emerald",
+			"amount": 16,
+			"lore": ["Origin: server1"]
+		}
+	]`
+
+	err = db.Put(player, []byte(server1Inventory), "server1")
+	require.NoError(t, err)
+
+	// Player moves to server2, items disappear from ender chest
+	// In a real system, this would trigger virtual inventory tracking
+	server2Inventory := `[]` // Empty inventory - items disappeared
+
+	err = db.Put(player, []byte(server2Inventory), "server2")
+	require.NoError(t, err)
+
+	// The disappeared server1 items would be tracked in server2's virtual inventory
+	// This allows server2 to "spend" those items when they appear elsewhere
+
+	// Later, if the same items appear on another player from server1,
+	// they would be validated against the virtual inventory to prevent duplication
+
+	// This test demonstrates the database's role in storing the state,
+	// while the validation layer handles the actual virtual inventory logic
 }
